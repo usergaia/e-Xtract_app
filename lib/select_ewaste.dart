@@ -1,8 +1,4 @@
-import 'package:extract_app/smartphone_selection.dart';
-import 'package:extract_app/laptop_selection.dart';
-import 'package:extract_app/desktop_selection.dart';
-import 'package:extract_app/router_selection.dart';
-import 'package:extract_app/landline_selection.dart';
+import 'package:extract_app/upload_or_camera.dart';
 import 'package:flutter/material.dart';
 import 'base.dart';
 
@@ -36,34 +32,11 @@ class SelectEwaste extends StatelessWidget { // Class names should be PascalCase
           minimumSize: const Size(double.infinity, 50), // Full width
         ),
         onPressed: () {
-          if (label == 'Smartphone') {
-            Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SmartphoneSelection()),
-                );
-          } else if (label == 'Laptop') {
-            Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LaptopSelection()),
-                );
-          } else if (label == 'Desktop') {
-            Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DesktopSelection()),
-                );
-          }
-           else if (label == 'Router') {
-            Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RouterSelection()),
-                );
-          }
-          else if (label == 'Landline Phone') {
-            Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LandlineSelection()),
-                );
-          }
+          Navigator.push(context,
+          MaterialPageRoute(
+            builder: (context) => UploadOrCamera(category: label),
+          ),
+          );
         },
         child: Text(
           label,
