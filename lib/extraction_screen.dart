@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/services.dart'; // For loading JSON
 import 'base.dart';
 
 class ExtractionScreen extends StatefulWidget {
@@ -13,8 +15,32 @@ class ExtractionScreen extends StatefulWidget {
 }
 
 class _ExtractionScreenState extends State<ExtractionScreen> {
-  final List<String> valuableParts = ['Battery', 'Camera', 'Motherboard']; // Temporary parts list
+  Map<String, dynamic> ruleBase = {};
+  List<String> valuableParts = ['Camera','Battery']; // Parts detected for the category
   int currentPart = 0; // Index counter
+
+  @override
+  void initState() {
+    super.initState();
+    loadRules();
+  }
+
+  Future<void> loadRules() async {
+  String jsonString = await rootBundle.loadString('assets/knowledge-base.json');
+  Map<String, dynamic> data = json.decode(jsonString);
+
+  print("Widget Category: ${widget.category}");
+  print("JSON Categories: ${data.keys}");
+
+  if (data.containsKey(widget.category)) {
+    setState(() {
+      ruleBase = data[widget.category];
+      valuableParts = ruleBase.keys.toList();
+    });
+  } else {
+    print("Category not found in JSON!");
+  }
+}
 
   void nextPart() {
     setState(() {
@@ -25,15 +51,18 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
   }
 
   void previousPart() {
-  setState(() {
-    if (currentPart > 0) { 
-      currentPart--;
-    }
-  });
-}
+    setState(() {
+      if (currentPart > 0) { 
+        currentPart--;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    String partName = valuableParts.isNotEmpty ? valuableParts[currentPart] : "Loading...";
+    Map<String, dynamic>? partDetails = ruleBase[partName];
+
     return Base(
       title: 'Part Extraction',
       child: Center(
@@ -42,66 +71,51 @@ class _ExtractionScreenState extends State<ExtractionScreen> {
             const SizedBox(height: 10),
             const Text(
               'Valuable Parts',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 10),
             Container(
               width: 300,
               height: 300,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 4),
-              ),
-              child: Image.file(
-                File(widget.imagePath),
-                fit: BoxFit.cover,
-              ),
+              decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 4)),
+              child: Image.file(File(widget.imagePath), fit: BoxFit.cover),
             ),
             const SizedBox(height: 10),
             Text(
-              valuableParts[currentPart], // Display the current part name
-              style: const TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              partName, // Display the current part name
+              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 5),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               alignment: Alignment.centerLeft,
-              child: Column( // Wrap both Text widgets inside a Column
-                crossAxisAlignment: CrossAxisAlignment.start, // Ensures left alignment
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Price Estimation: ₱${valuableParts[currentPart]}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    'Price Estimation: ${partDetails?["value"] ?? "N/A"}',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Dismantling Instructions',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    'Dismantling Instructions:',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
-                  const SizedBox(height: 10), // Adds spacing between the texts
+                  const SizedBox(height: 10),
+                  for (var step in partDetails?["extraction_steps"] ?? []) 
+                    Text("- $step", style: const TextStyle(fontSize: 18, color: Colors.white)),
+                  const SizedBox(height: 10),
                   Text(
-                    'Steps for ${valuableParts[currentPart]}', // Correct string interpolation
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    'Hazards:',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
+                  Text(partDetails?["hazards"]?.join("\n") ?? "N/A", style: const TextStyle(fontSize: 18, color: Colors.white)),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Recycling Info:',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  Text(partDetails?["recycling_info"] ?? "N/A", style: const TextStyle(fontSize: 18, color: Colors.white)),
                 ],
               ),
             ),
