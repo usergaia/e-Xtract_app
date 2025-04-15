@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:io'; 
 import 'base.dart';
 import 'extraction_screen.dart';
+import 'test_model.dart';
 
 class UploadOrCamera extends StatefulWidget {
   final String category;
@@ -75,9 +76,9 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ExtractionScreen(
-                        category: widget.category,
-                        imagePath: _imagePath!,
+                      builder: (context) => TestModelScreen(
+                        //category: widget.category,
+                        //imagePath: _imagePath!,
                       ),
                     ),
                   );
