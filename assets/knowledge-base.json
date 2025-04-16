@@ -1,0 +1,17 @@
+{
+    "Smartphone": {
+      "Camera": {
+        "value": "High",
+        "extraction_steps": ["Unscrew the back cover", "Disconnect flex cables", "Remove camera module"],
+        "hazards": ["Handle lens carefully to avoid breakage"],
+        "recycling_info": "Can be resold or repurposed"
+      },
+      "Battery": {
+        "value": "Medium",
+        "extraction_steps": ["Remove adhesive strips", "Lift battery gently"],
+        "hazards": ["Avoid puncturing to prevent explosion"],
+        "recycling_info": "Should be disposed at an e-waste center"
+      }
+    }
+  }
+  
