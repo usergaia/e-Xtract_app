@@ -16,14 +16,26 @@ class UploadOrCamera extends StatefulWidget {
 
 class _UploadOrCameraState extends State<UploadOrCamera> {
   final ImagePicker _picker = ImagePicker();
-  String? _imagePath; 
+  List<XFile> _selectedImages = []; // List to store multiple images
 
-  Future<void> _pickImage(ImageSource source) async {
+  // Allow selecting multiple images from the gallery
+  Future<void> _pickMultipleImages() async {
+    final List<XFile>? images = await _picker.pickMultiImage();
+
+    if (images != null && images.isNotEmpty) {
+      setState(() {
+        _selectedImages.addAll(images); // Add the images to the list
+      });
+    }
+  }
+
+  // Allow taking a single image using the camera, adding it to the list
+  Future<void> _pickSingleImage(ImageSource source) async {
     final XFile? image = await _picker.pickImage(source: source);
 
     if (image != null) {
       setState(() {
-        _imagePath = image.path; 
+        _selectedImages.add(image); // Add the image to the list without replacing
       });
     }
   }
@@ -32,71 +44,112 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
   Widget build(BuildContext context) {
     return Base(
       title: widget.category,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 50),
-            Text(
-              'Upload a picture of your e-waste or use your camera.',
-              style: GoogleFonts.robotoCondensed(
-                color: Colors.white70,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
+child: SingleChildScrollView(
+  padding: const EdgeInsets.all(16.0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const SizedBox(height: 50),
+      Text(
+        'Upload a picture of your e-waste or use your camera.',
+        style: GoogleFonts.robotoCondensed(
+          color: Colors.white70,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        textAlign: TextAlign.center,
+      ),
+      const SizedBox(height: 20),
 
-            // Show the image if one has been selected
-            if (_imagePath != null)
-              Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 4),
-                ),
-                child: Image.file(
-                  File(_imagePath!),
-                  fit: BoxFit.cover,
-                ),
-              ),
-
-            const SizedBox(height: 20),
-
-            _buildUploadCameraButton(context, 'Upload Image', Icons.upload),
-            const SizedBox(height: 10),
-            _buildUploadCameraButton(context, 'Use Camera', Icons.camera_alt),
-
-            if (_imagePath != null) ...[
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ExtractionScreen(
-                        category: widget.category,
-                        imagePath: _imagePath!,
+      if (_selectedImages.isNotEmpty)
+        SizedBox(
+          height: 300,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _selectedImages.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              return Stack(
+                children: [
+                  Container(
+                    width: 200,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black, width: 4),
+                    ),
+                    child: ClipRRect(
+                      child: Image.file(
+                        File(_selectedImages[index].path),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 50, 174, 59),
-                ),
-                child: Text('Proceed to Extraction',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
                   ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedImages.removeAt(index);
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+
+      const SizedBox(height: 20),
+
+      _buildUploadCameraButton(context, 'Upload Image', Icons.upload),
+      const SizedBox(height: 10),
+      _buildUploadCameraButton(context, 'Use Camera', Icons.camera_alt),
+
+      if (_selectedImages.isNotEmpty) ...[
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExtractionScreen(
+                  category: widget.category,
+                  imagePath: _selectedImages.first.path,
                 ),
               ),
-            ],
-          ],
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 50, 174, 59),
+          ),
+          child: Text(
+            'Proceed to Extraction',
+            style: GoogleFonts.montserrat(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
-      ),
+      ],
+    ],
+  ),
+),
+
     );
   }
 
@@ -105,9 +158,9 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
     return GestureDetector(
       onTap: () {
         if (label == 'Upload Image') {
-          _pickImage(ImageSource.gallery); 
+          _pickMultipleImages(); // Select multiple images from gallery
         } else if (label == 'Use Camera') {
-          _pickImage(ImageSource.camera); 
+          _pickSingleImage(ImageSource.camera); // Capture a single image with the camera
         }
       },
       child: Container(
@@ -122,11 +175,11 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
               offset: const Offset(0, 4),
-             blurRadius: 10,
+              blurRadius: 10,
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 20), 
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
