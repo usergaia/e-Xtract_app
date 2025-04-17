@@ -1,10 +1,9 @@
+import 'package:extract_app/test_model.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io'; 
 import 'base.dart';
-import 'extraction_screen.dart';
-import 'test_model.dart';
 
 class UploadOrCamera extends StatefulWidget {
   final String category;
@@ -17,14 +16,22 @@ class UploadOrCamera extends StatefulWidget {
 
 class _UploadOrCameraState extends State<UploadOrCamera> {
   final ImagePicker _picker = ImagePicker();
-  String? _imagePath; 
+  List<XFile> _selectedImages = [];
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickMultipleImages() async {
+    final List<XFile>? images = await _picker.pickMultiImage();
+    if (images != null && images.isNotEmpty) {
+      setState(() {
+        _selectedImages.addAll(images);
+      });
+    }
+  }
+
+  Future<void> _pickSingleImage(ImageSource source) async {
     final XFile? image = await _picker.pickImage(source: source);
-
     if (image != null) {
       setState(() {
-        _imagePath = image.path; 
+        _selectedImages.add(image);
       });
     }
   }
@@ -33,9 +40,10 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
   Widget build(BuildContext context) {
     return Base(
       title: widget.category,
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 50),
             Text(
@@ -49,17 +57,55 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             ),
             const SizedBox(height: 20),
 
-            // Show the image if one has been selected
-            if (_imagePath != null)
-              Container(
-                width: 300,
+            if (_selectedImages.isNotEmpty)
+              SizedBox(
                 height: 300,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 4),
-                ),
-                child: Image.file(
-                  File(_imagePath!),
-                  fit: BoxFit.cover,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedImages.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 200,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 4),
+                          ),
+                          child: ClipRRect(
+                            child: Image.file(
+                              File(_selectedImages[index].path),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedImages.removeAt(index);
+                              });
+                            },
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
 
@@ -69,24 +115,25 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             const SizedBox(height: 10),
             _buildUploadCameraButton(context, 'Use Camera', Icons.camera_alt),
 
-            if (_imagePath != null) ...[
-              const SizedBox(height: 10),
+            if (_selectedImages.isNotEmpty) ...[
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TestModelScreen(
-                        //category: widget.category,
-                        //imagePath: _imagePath!,
+                      builder: (context) => PartDetectionScreen(
+                        category: widget.category,
+                        imagePath: _selectedImages.first.path,
                       ),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 50, 174, 59),
+                  backgroundColor: const Color.fromARGB(255, 50, 174, 59),
                 ),
-                child: Text('Proceed to Extraction',
+                child: Text(
+                  'Continue',
                   style: GoogleFonts.montserrat(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -101,14 +148,13 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
     );
   }
 
-  // Create a reusable widget for the upload or camera buttons
   Widget _buildUploadCameraButton(BuildContext context, String label, IconData icon) {
     return GestureDetector(
       onTap: () {
         if (label == 'Upload Image') {
-          _pickImage(ImageSource.gallery); 
+          _pickMultipleImages();
         } else if (label == 'Use Camera') {
-          _pickImage(ImageSource.camera); 
+          _pickSingleImage(ImageSource.camera);
         }
       },
       child: Container(
@@ -123,19 +169,15 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
               offset: const Offset(0, 4),
-             blurRadius: 10,
+              blurRadius: 10,
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 20), 
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 40,
-            ),
+            Icon(icon, color: Colors.white, size: 40),
             const SizedBox(width: 10),
             Text(
               label,

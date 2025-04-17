@@ -1,358 +1,443 @@
-// test_model.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
-import 'dart:developer';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:google_fonts/google_fonts.dart';
 
-class TestModelScreen extends StatefulWidget {
-  const TestModelScreen({super.key});
+class PartDetectionScreen extends StatefulWidget {
+  final String category;
+  final String imagePath;
+
+  const PartDetectionScreen({
+    super.key,
+    required this.category,
+    required this.imagePath,
+  });
 
   @override
-  State<TestModelScreen> createState() => _TestModelScreenState();
+  State<PartDetectionScreen> createState() => _PartDetectionScreenState();
 }
 
-class _TestModelScreenState extends State<TestModelScreen> {
-  Interpreter? _interpreter;
-  File? _selectedImage;
-  String _result = "No image selected.";
+class _PartDetectionScreenState extends State<PartDetectionScreen> {
+  late Interpreter _interpreter;
+  late File _image;
+  bool _isProcessing = false;
+  bool _isModelLoaded = false;
   List<String> _labels = [];
-  List<DetectionResult> _detections = [];
+  List<Detection> _finalDetections = [];
 
   @override
   void initState() {
     super.initState();
-    loadModel();
-    loadLabels();
+    _image = File(widget.imagePath); // set image first
+    _loadModelAndProcessImage();     // handles model loading + inference
   }
 
-  Future<void> loadLabels() async {
-    try {
-      String labelsData = await rootBundle.loadString('assets/models/labels.txt');
-      _labels = labelsData.split('\n')
-          .where((label) => label.trim().isNotEmpty)
-          .map((label) => label.trim().split(' ').last) // Extract just the label name from "0 battery"
-          .toList();
-      log("✅ Loaded ${_labels.length} labels: ${_labels.join(', ')}");
-    } catch (e) {
-      log("❌ Error loading labels: $e");
-      setState(() {
-        _result = "❌ Error loading labels: $e";
-      });
+  Future<void> _loadModelAndProcessImage() async {
+    if (!_isModelLoaded) {
+      await _loadModel();
     }
-}
-
-  Future<void> loadModel() async {
-    try {
-      _interpreter = await Interpreter.fromAsset('assets/models/best_laptop.tflite');
-
-      var inputTensor = _interpreter!.getInputTensor(0);
-      var outputTensor = _interpreter!.getOutputTensor(0);
-      log("Input Tensor Shape: ${inputTensor.shape}");
-      log("Output Tensor Shape: ${outputTensor.shape}");
-
-      setState(() {
-        _result = "✅ Model Loaded Successfully!";
-      });
-    } catch (e) {
-      setState(() {
-        _result = "❌ Error loading model: $e";
-      });
+    if (_isModelLoaded) {
+      await _loadLabels(); // Load labels after model is loaded
+      setState(() => _isProcessing = true);
+      await _processImage(_image);
     }
   }
 
-  Future<void> pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-        _result = "📸 Image Loaded: ${pickedFile.name}";
-        _detections = [];
-      });
-      runModelOnImage(_selectedImage!);
-    }
-  }
-
-  Future<void> runModelOnImage(File imageFile) async {
-    if (_interpreter == null) {
-      setState(() {
-        _result = "❌ Model not loaded!";
-      });
-      return;
-    }
-
-    var input = await preprocessImage(imageFile);
-    var inputBuffer = input.reshape([1, 1280, 1280, 3]);
-    var outputBuffer = List.filled(1 * 16 * 33600, 0.0).reshape([1, 16, 33600]);
-
-    try {
-      _interpreter!.run(inputBuffer, outputBuffer);
-      log("✅ Model Inference Success.");
-    } catch (e, stacktrace) {
-      log("🔥 Error Running Model: $e", error: e, stackTrace: stacktrace);
-      setState(() {
-        _result = "❌ Error running model: $e";
-      });
-      return;
-    }
-
-    parseYOLOOutput(outputBuffer);
-  }
-
-  Future<Float32List> preprocessImage(File imageFile) async {
-    final imageBytes = await imageFile.readAsBytes();
-    img.Image image = img.decodeImage(Uint8List.fromList(imageBytes))!;
-    img.Image resizedImage = img.copyResize(image, width: 1280, height: 1280);
-
-    List<double> imageList = [];
-    for (int y = 0; y < 1280; y++) {
-      for (int x = 0; x < 1280; x++) {
-        final pixel = resizedImage.getPixel(x, y);
-        imageList.add(pixel.r / 255.0);
-        imageList.add(pixel.g / 255.0);
-        imageList.add(pixel.b / 255.0);
-      }
-    }
-
-    return Float32List.fromList(imageList);
-  }
-
-  void parseYOLOOutput(List<dynamic> outputBuffer) {
-    var output = outputBuffer[0];
-    List<DetectionResult> detectionResults = [];
-    const double confidenceThreshold = 0.5;
-
-    for (var detection in output) {
-      try {
-        double x = detection[0];
-        double y = detection[1];
-        double width = detection[2];
-        double height = detection[3];
-        double confidence = detection[4];
-
-        List<double> classProbabilities = detection.sublist(5).cast<double>();
-        int predictedClass = classProbabilities.indexOf(classProbabilities.reduce((a, b) => a > b ? a : b));
-        double classConfidence = classProbabilities[predictedClass];
-
-        if (classConfidence < confidenceThreshold) continue;
-
-        String className = "Unknown (Class $predictedClass)";
-        if (_labels.isNotEmpty) {
-          int mappedIndex = predictedClass % _labels.length;
-          className = _labels[mappedIndex];
-        }
-
-        detectionResults.add(
-          DetectionResult(
-            className: className,
-            confidence: classConfidence,
-            boundingBox: Rect.fromLTWH(x, y, width, height),
-          ),
-        );
-      } catch (e) {
-        log("Error processing detection: $e");
-      }
-    }
-
+  Future<void> _loadLabels() async {
+    final labelData = await rootBundle.loadString(_getLabelPathBasedOnCategory(widget.category));
     setState(() {
-      _detections = detectionResults;
-      _result = detectionResults.isEmpty
-          ? "No objects detected"
-          : "Detected ${detectionResults.length} objects";
+      _labels = labelData.split('\n').map((label) => label.trim()).toList();
     });
+  }
+
+  Future<void> _loadModel() async {
+    try {
+      print("Loading model...");
+      String modelPath = _getModelPathBasedOnCategory(widget.category);
+      _interpreter = await Interpreter.fromAsset(modelPath);
+      setState(() {
+        _isModelLoaded = true;
+      });
+      print("Model loaded successfully.");
+      print("Input shape: ${_interpreter.getInputTensor(0).shape}");
+      print("Output shape: ${_interpreter.getOutputTensor(0).shape}");
+    } catch (e) {
+      print("Failed to load model: $e");
+    }
+  }
+
+  // Get model path based on category
+  String _getModelPathBasedOnCategory(String category) {
+    switch (category) {
+      case 'Smartphone':
+        return 'assets/models/smartphone/best_phone.tflite';
+      case 'Laptop':
+        return 'assets/models/laptop/best_laptop.tflite';
+      case 'Desktop':
+        return 'assets/models/computer/best_computer.tflite';
+      case 'Router':
+      case 'Landline Phone':
+        return 'assets/models/telecom/best_telecom.tflite';
+      default:
+        throw Exception("Model not found for category: $category");
+    }
+  }
+
+  // Get label path based on category
+  String _getLabelPathBasedOnCategory(String category) {
+    switch (category) {
+      case 'Smartphone':
+        return 'assets/models/smartphone/labels.txt';
+      case 'Laptop':
+        return 'assets/models/laptop/labels.txt';
+      case 'Desktop':
+        return 'assets/models/computer/labels.txt';
+      case 'Router':
+      case 'Landline Phone':
+        return 'assets/models/telecom/labels.txt';
+      default:
+        throw Exception("Label file not found for category: $category");
+    }
+  }
+
+  Future<void> _processImage(File imageFile) async {
+    try {
+      final rawBytes = await imageFile.readAsBytes();
+      final decoded = img.decodeImage(rawBytes);
+      if (decoded == null) {
+        print("Failed to decode image.");
+        return;
+      }
+      final resized = img.copyResize(decoded, width: 1280, height: 1280);
+      final inputImage = Float32List(1280 * 1280 * 3);
+      int index = 0;
+      for (int y = 0; y < 1280; y++) {
+        for (int x = 0; x < 1280; x++) {
+          final p = resized.getPixel(x, y);
+          inputImage[index++] = p.r / 255.0;
+          inputImage[index++] = p.g / 255.0;
+          inputImage[index++] = p.b / 255.0;
+        }
+      }
+      final input = inputImage.reshape([1, 1280, 1280, 3]);
+      final outputTensor = _interpreter.getOutputTensor(0);
+      final shape = outputTensor.shape;
+      final output = List.generate(
+        shape[0],
+        (_) => List.generate(shape[1], (_) => List.filled(shape[2], 0.0)),
+      );
+
+      print("Running inference...");
+      _interpreter.run(input, output);
+      print("Inference completed.");
+
+      _parseDetections(output[0], threshold: 0.5);
+    } catch (e) {
+      print("Inference failed: $e");
+    } finally {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+  }
+
+  void _parseDetections(List<List<double>> detections, {double threshold = 0.25}) {
+    List<Detection> dets = [];
+
+    for (int i = 0; i < detections[0].length; i++) {
+      final pred = List.generate(detections.length, (j) => detections[j][i]);
+      if (pred.length < 5) continue;
+
+      final cx = pred[0];
+      final cy = pred[1];
+      final w  = pred[2];
+      final h  = pred[3];
+
+      final x = cx - w / 2;
+      final y = cy - h / 2;
+
+      final scores   = pred.sublist(4);
+      final maxScore = scores.reduce((a, b) => a > b ? a : b);
+      final clsIdx   = scores.indexOf(maxScore);
+      if (maxScore < threshold) continue;
+
+      final name = (clsIdx < _labels.length) ? _labels[clsIdx] : 'Unknown';
+
+      dets.add(Detection(
+        score: maxScore,
+        boundingBox: Rect(x: x, y: y, width: w, height: h),
+        className: name,
+      ));
+    }
+
+    final filtered = applyNMS(dets, 0.4);
+
+    for (var det in filtered) {
+      print("Final Detection after NMS:");
+      print(" - Class: ${det.className}");
+      print(" - Confidence: ${det.score.toStringAsFixed(2)}");
+      print(" - Bounding Box (x: ${det.boundingBox.x.toStringAsFixed(4)}, "
+            "y: ${det.boundingBox.y.toStringAsFixed(4)}, "
+            "w: ${det.boundingBox.width.toStringAsFixed(4)}, "
+            "h: ${det.boundingBox.height.toStringAsFixed(4)})");
+      print("-------------------------");
+    }
+
+    setState(() => _finalDetections = filtered);
+  }
+
+  List<Detection> applyNMS(List<Detection> dets, double iouThreshold) {
+    dets.sort((a, b) => b.score.compareTo(a.score));
+    List<Detection> kept = [];
+    while (dets.isNotEmpty) {
+      final cur = dets.removeAt(0);
+      dets.removeWhere((d) =>
+        cur.boundingBox.intersectionOverUnion(d.boundingBox) > iouThreshold
+      );
+      kept.add(cur);
+    }
+    return kept;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        title: const Text("Test Model"),
-        backgroundColor: Colors.green,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_selectedImage != null) ...[
-              const SizedBox(height: 20),
-              Stack(
-                children: [
-                  Image.file(_selectedImage!, height: 300, fit: BoxFit.contain),
-                  if (_detections.isNotEmpty)
-                    BoundingBoxPainter(
-                      imageFile: _selectedImage!,
-                      detections: _detections,
-                      imageHeight: 300,
-                    ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 20),
-            Text(
-              _result,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Colors.greenAccent, Colors.green],
+          ).createShader(bounds),
+          child: Text(
+            'Detection Results',
+            style: GoogleFonts.montserrat(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 20),
-            if (_detections.isNotEmpty) ...[
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Column(
+            children: [
+              // Image container with bounding boxes
               Container(
-                padding: const EdgeInsets.all(8),
+                width: double.infinity,
+                height: 250,
                 decoration: BoxDecoration(
-                  color: Colors.green.withAlpha(50),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Detection Results",
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                    const SizedBox(height: 8),
-                    ...List.generate(_detections.length, (index) {
-                      final detection = _detections[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.green,
-                          child: Text("${index + 1}"),
-                        ),
-                        title: Text(detection.className, style: const TextStyle(color: Colors.white)),
-                        subtitle: Text(
-                          "Confidence: ${(detection.confidence * 100).toStringAsFixed(1)}%",
-                          style: const TextStyle(color: Colors.white70),
-                        ),
-                      );
-                    }),
+                  ],
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Base image
+                    Image.file(
+                      _image,
+                      fit: BoxFit.contain,
+                    ),
+                    
+                    // Bounding boxes overlay
+                    _buildBoundingBoxes(),
                   ],
                 ),
               ),
+              const SizedBox(height: 24),
+              
+              // Processing indicator
+              if (_isProcessing)
+                Column(
+                  children: [
+                    const CircularProgressIndicator(color: Colors.greenAccent),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Processing image...',
+                      style: GoogleFonts.robotoCondensed(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+                
+              // No detections message
+              if (!_isProcessing && _finalDetections.isEmpty)
+                Text(
+                  'No objects detected.',
+                  style: GoogleFonts.robotoCondensed(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+                
+              // Detected objects list
+              if (!_isProcessing && _finalDetections.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Detected Parts',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...List.generate(
+                      _finalDetections.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '${index + 1}. ${_finalDetections[index].className} (${(_finalDetections[index].score * 100).toStringAsFixed(1)}%)',
+                          style: GoogleFonts.robotoCondensed(
+                            fontSize: 22,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+              const Spacer(),
+              
+              // Back button
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(0, 4),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Back',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () => pickImage(ImageSource.camera),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: const Text("📸 Capture Image"),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () => pickImage(ImageSource.gallery),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: const Text("🖼 Select from Gallery"),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-          ],
+          ),
         ),
       ),
     );
   }
-}
-
-class DetectionResult {
-  final String className;
-  final double confidence;
-  final Rect boundingBox;
-
-  DetectionResult({
-    required this.className,
-    required this.confidence,
-    required this.boundingBox,
-  });
-}
-
-class BoundingBoxPainter extends StatelessWidget {
-  final File imageFile;
-  final List<DetectionResult> detections;
-  final double imageHeight;
-
-  const BoundingBoxPainter({
-    super.key,
-    required this.imageFile,
-    required this.detections,
-    required this.imageHeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  
+  // Separate method to build bounding boxes as an overlay
+  Widget _buildBoundingBoxes() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SizedBox(
-          height: imageHeight,
-          width: constraints.maxWidth,
-          child: CustomPaint(
-            painter: DetectionPainter(
-              detections: detections,
-              imageSize: Size(constraints.maxWidth, imageHeight),
-            ),
-          ),
+        final imageWidth = constraints.maxWidth;
+        final imageHeight = constraints.maxHeight;
+        
+        return Stack(
+          children: _finalDetections.map((detection) {
+            // Calculate position based on image dimensions
+            final left   = detection.boundingBox.x * imageWidth;
+            final top    = detection.boundingBox.y * imageHeight;
+            final width  = detection.boundingBox.width * imageWidth;
+            final height = detection.boundingBox.height * imageHeight;
+
+            return Positioned(
+              left: left,
+              top: top,
+              width: width,
+              height: height,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.greenAccent, width: 2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.8),
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(4),
+                      ),
+                    ),
+                    child: Text(
+                      '${detection.className} ${(detection.score * 100).toStringAsFixed(1)}%',
+                      style: GoogleFonts.robotoCondensed(
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         );
       },
     );
   }
 }
 
-class DetectionPainter extends CustomPainter {
-  final List<DetectionResult> detections;
-  final Size imageSize;
+class Detection {
+  final double score;
+  final Rect boundingBox;
+  final String className;
 
-  DetectionPainter({required this.detections, required this.imageSize});
+  Detection({
+    required this.score,
+    required this.boundingBox,
+    required this.className,
+  });
+}
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double scaleX = imageSize.width / 1280;
-    final double scaleY = imageSize.height / 1280;
+class Rect {
+  final double x, y, width, height;
+  Rect({required this.x, required this.y, required this.width, required this.height});
 
-    final Paint boxPaint = Paint()
-      ..color = Colors.red
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+  double get area => width * height;
 
-    final Paint textBgPaint = Paint()
-      ..color = Colors.red.withAlpha(180)
-      ..style = PaintingStyle.fill;
-
-    final TextStyle textStyle = const TextStyle(
-      color: Colors.white,
-      fontSize: 12,
-      fontWeight: FontWeight.bold,
-    );
-
-    for (var detection in detections) {
-      final double left = detection.boundingBox.left * scaleX;
-      final double top = detection.boundingBox.top * scaleY;
-      final double width = detection.boundingBox.width * scaleX;
-      final double height = detection.boundingBox.height * scaleY;
-
-      final Rect scaledRect = Rect.fromLTWH(left, top, width, height);
-      canvas.drawRect(scaledRect, boxPaint);
-
-      final String label = "${detection.className}: ${(detection.confidence * 100).toStringAsFixed(0)}%";
-      final textSpan = TextSpan(text: label, style: textStyle);
-      final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
-      textPainter.layout();
-
-      final textBackgroundRect = Rect.fromLTWH(
-        left,
-        top - textPainter.height - 4,
-        textPainter.width + 8,
-        textPainter.height + 4,
-      );
-      canvas.drawRect(textBackgroundRect, textBgPaint);
-
-      textPainter.paint(canvas, Offset(left + 4, top - textPainter.height - 2));
-    }
+  double intersectionOverUnion(Rect o) {
+    final dx = (x + width).clamp(o.x, o.x + o.width) - x.clamp(o.x, o.x + o.width);
+    final dy = (y + height).clamp(o.y, o.y + o.height) - y.clamp(o.y, o.y + o.height);
+    if (dx < 0 || dy < 0) return 0;
+    final inter = dx * dy;
+    final union = area + o.area - inter;
+    return inter / union;
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

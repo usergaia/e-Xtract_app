@@ -68,7 +68,15 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/knowledge-base.json
-    - assets/models/best_laptop.tflite
+    - assets/models/laptop/best_laptop.tflite
+    - assets/models/laptop/labels.txt
+    - assets/models/computer/best_computer.tflite
+    - assets/models/computer/labels.txt
+    - assets/models/smartphone/best_phone.tflite
+    - assets/models/smartphone/labels.txt
+    - assets/models/telecom/best_telecom.tflite
+    - assets/models/telecom/labels.txt
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
