@@ -14,7 +14,17 @@ class SelectEwaste extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const SizedBox(height: 100),
+            const SizedBox(height: 20),
+            Text(
+                'Select a device type below to get started with part extraction and recycling instructions.',
+                style: GoogleFonts.robotoCondensed(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white70,
+                ),
+                textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 40),
             Flexible(
               child: GridView.count(
                 shrinkWrap: true,

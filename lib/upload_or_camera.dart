@@ -1,4 +1,4 @@
-import 'package:extract_app/test_model.dart';
+import 'package:extract_app/part_detection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -47,7 +47,7 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
           children: [
             const SizedBox(height: 50),
             Text(
-              'Upload a picture of your e-waste or use your camera.',
+              'Upload pictures of your e-waste or use your camera.',
               style: GoogleFonts.robotoCondensed(
                 color: Colors.white70,
                 fontSize: 20,

@@ -12,21 +12,31 @@ class Base extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 30, 30, 30), // Common background color
       appBar: AppBar(
-        title: Text(title,
-         style: GoogleFonts.montserrat(
-            fontSize: 23,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [Colors.greenAccent, Colors.green],
+            ).createShader(bounds),
+            child: const Icon(Icons.keyboard_arrow_left_rounded, color: Colors.white, size: 32),
           ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
-            )
-          )
+        title: ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Colors.greenAccent, Colors.green],
+          ).createShader(bounds),
+          child: Text(
+            title,
+            style: GoogleFonts.montserrat(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         centerTitle: true,
       ),
