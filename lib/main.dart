@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'select_ewaste.dart';
+import 'chatbot_screen.dart'; // Import the ChatbotScreen
 
 void main() {
   runApp(const MyApp());
@@ -79,46 +80,41 @@ class HomeScreen extends StatelessWidget {
                       title: 'Profit',
                       subtitle: 'Discover the value of recovered parts',
                     ),
+                    _buildSlide(
+                      icon: Icons.chat_bubble_outline,
+                      title: 'Get Help',
+                      subtitle: 'Chat with our AI assistant',
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 30),
-              GestureDetector(
+              
+              // Get Started button
+              _buildButton(
+                context: context,
+                text: 'Get Started',
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const SelectEwaste()),
                   );
                 },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF34A853), Color(0xFF0F9D58)], // vibrant green gradient
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(0, 4),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Get Started',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+              ),
+
+              const SizedBox(height: 16),
+              
+              // Chat with Assistant button
+              _buildButton(
+                context: context,
+                text: 'Chat with Assistant',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+                  );
+                },
+                icon: Icons.chat_bubble_outline,
               ),
 
               const SizedBox(height: 10),
@@ -172,6 +168,57 @@ class HomeScreen extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+
+  Widget _buildButton({
+    required BuildContext context, 
+    required String text, 
+    required VoidCallback onTap, 
+    IconData? icon
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              offset: const Offset(0, 4),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 24,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 10),
+            ],
+            Text(
+              text,
+              style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
