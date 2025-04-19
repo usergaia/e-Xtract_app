@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'select_ewaste.dart';
-import 'chatbot_screen.dart'; // Import the ChatbotScreen
+import 'chatbot_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,109 +29,134 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the screen dimensions for responsive layout
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 60),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [Colors.greenAccent, Colors.green],
-                ).createShader(bounds),
-                child: Text(
-                  'e-Xtract',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 58,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: screenHeight * 0.04),
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Colors.greenAccent, Colors.green],
+                        ).createShader(bounds),
+                        child: Text(
+                          'e-Xtract',
+                          style: GoogleFonts.montserrat(
+                            fontSize: screenHeight * 0.07, // Responsive font size
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.01),
+                      Text(
+                        'Identify and extract valuable components in your e-waste instantly.',
+                        style: GoogleFonts.robotoCondensed(
+                          fontSize: screenHeight * 0.022, // Responsive font size
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      SizedBox(
+                        height: screenHeight * 0.35, // Responsive height
+                        child: PageView(
+                          children: [
+                            _buildSlide(
+                              context: context,
+                              icon: Icons.document_scanner_rounded,
+                              title: 'Scan',
+                              subtitle: 'Analyze e-waste using your camera',
+                            ),
+                            _buildSlide(
+                              context: context,
+                              icon: Icons.precision_manufacturing_rounded,
+                              title: 'Extract',
+                              subtitle: 'Identify components for recovery',
+                            ),
+                            _buildSlide(
+                              context: context,
+                              icon: Icons.attach_money_rounded,
+                              title: 'Profit',
+                              subtitle: 'Discover the value of recovered parts',
+                            ),
+                            _buildSlide(
+                              context: context,
+                              icon: Icons.chat_bubble_outline,
+                              title: 'Get Help',
+                              subtitle: 'Chat with our AI assistant',
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      
+                      // Get Started button
+                      _buildButton(
+                        context: context,
+                        text: 'Get Started',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SelectEwaste()),
+                          );
+                        },
+                      ),
+
+                      SizedBox(height: screenHeight * 0.015),
+                      
+                      // Chat with Assistant button
+                      _buildButton(
+                        context: context,
+                        text: 'Chat with Assistant',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+                          );
+                        },
+                        icon: Icons.chat_bubble_outline,
+                      ),
+
+                      SizedBox(height: screenHeight * 0.02),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Identify and extract valuable components in your e-waste instantly.',
-                style: GoogleFonts.robotoCondensed(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white70,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                height: 350,
-                child: PageView(
-                  children: [
-                    _buildSlide(
-                      icon: Icons.document_scanner_rounded,
-                      title: 'Scan',
-                      subtitle: 'Analyze e-waste using your camera',
-                    ),
-                    _buildSlide(
-                      icon: Icons.precision_manufacturing_rounded,
-                      title: 'Extract',
-                      subtitle: 'Identify components for recovery',
-                    ),
-                    _buildSlide(
-                      icon: Icons.attach_money_rounded,
-                      title: 'Profit',
-                      subtitle: 'Discover the value of recovered parts',
-                    ),
-                    _buildSlide(
-                      icon: Icons.chat_bubble_outline,
-                      title: 'Get Help',
-                      subtitle: 'Chat with our AI assistant',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-              
-              // Get Started button
-              _buildButton(
-                context: context,
-                text: 'Get Started',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SelectEwaste()),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-              
-              // Chat with Assistant button
-              _buildButton(
-                context: context,
-                text: 'Chat with Assistant',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChatbotScreen()),
-                  );
-                },
-                icon: Icons.chat_bubble_outline,
-              ),
-
-              const SizedBox(height: 10),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildSlide({required IconData icon, required String title, required String subtitle}) {
+  Widget _buildSlide({
+    required BuildContext context,
+    required IconData icon, 
+    required String title, 
+    required String subtitle
+  }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          height: 110,
-          width: 110,
+          height: screenHeight * 0.12,
+          width: screenHeight * 0.12,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             shape: BoxShape.circle,
@@ -139,30 +164,30 @@ class HomeScreen extends StatelessWidget {
               BoxShadow(
                 color: Colors.black26,
                 blurRadius: 8,
-                offset: Offset(2, 4),
+                offset: const Offset(2, 4),
               ),
             ],
           ),
           child: Icon(
             icon,
-            size: 70,
+            size: screenHeight * 0.07,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: screenHeight * 0.015),
         Text(
           title,
           style: GoogleFonts.montserrat(
-            fontSize: 42,
+            fontSize: screenHeight * 0.045,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: screenHeight * 0.01),
         Text(
           subtitle,
           style: GoogleFonts.robotoCondensed(
-            fontSize: 19,
+            fontSize: screenHeight * 0.02,
             color: Colors.white70,
           ),
           textAlign: TextAlign.center,
@@ -172,16 +197,18 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildButton({
-    required BuildContext context, 
+    required BuildContext context,
     required String text, 
     required VoidCallback onTap, 
     IconData? icon
   }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
@@ -203,15 +230,15 @@ class HomeScreen extends StatelessWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                size: 24,
+                size: screenHeight * 0.026,
                 color: Colors.white,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: screenHeight * 0.01),
             ],
             Text(
               text,
               style: GoogleFonts.montserrat(
-                fontSize: 20,
+                fontSize: screenHeight * 0.022,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

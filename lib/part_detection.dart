@@ -6,6 +6,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_fonts/google_fonts.dart';
 
+
 class PartDetectionScreen extends StatefulWidget {
   final String category;
   final String imagePath;
@@ -20,31 +21,63 @@ class PartDetectionScreen extends StatefulWidget {
   State<PartDetectionScreen> createState() => _PartDetectionScreenState();
 }
 
-class _PartDetectionScreenState extends State<PartDetectionScreen> {
+class _PartDetectionScreenState extends State<PartDetectionScreen> with SingleTickerProviderStateMixin {
   late Interpreter _interpreter;
   late File _image;
   bool _isProcessing = false;
   bool _isModelLoaded = false;
   List<String> _labels = [];
   List<Detection> _finalDetections = [];
+  
+  // Animation controller for rotating progress indicator
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize the animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(); // Continuously repeat the animation
+    
     _image = File(widget.imagePath); // set image first
     _loadModelAndProcessImage();     // handles model loading + inference
   }
 
-  Future<void> _loadModelAndProcessImage() async {
-    if (!_isModelLoaded) {
-      await _loadModel();
-    }
-    if (_isModelLoaded) {
-      await _loadLabels(); // Load labels after model is loaded
-      setState(() => _isProcessing = true);
-      await _processImage(_image);
-    }
+  @override
+  void dispose() {
+    _animationController.dispose(); // Clean up the controller
+    super.dispose();
   }
+
+Future<void> _loadModelAndProcessImage() async {
+  if (!_isModelLoaded) {
+    await _loadModel();
+  }
+  if (_isModelLoaded) {
+    await _loadLabels(); // Load labels after model is loaded
+    
+    // Set processing state to true and make sure UI updates
+    setState(() => _isProcessing = true);
+    
+    // Give the UI thread time to update before heavy processing
+    await Future.delayed(const Duration(milliseconds: 200));
+    
+    // Process the image on a microtask to not directly block the UI thread
+    Future.microtask(() async {
+      try {
+        await _processImage(_image);
+      } finally {
+        // Update UI once processing is complete
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
+      }
+    });
+  }
+}
 
   Future<void> _loadLabels() async {
     final labelData = await rootBundle.loadString(_getLabelPathBasedOnCategory(widget.category));
@@ -103,46 +136,68 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
     }
   }
 
-  Future<void> _processImage(File imageFile) async {
-    try {
-      final rawBytes = await imageFile.readAsBytes();
-      final decoded = img.decodeImage(rawBytes);
-      if (decoded == null) {
-        print("Failed to decode image.");
-        return;
-      }
-      final resized = img.copyResize(decoded, width: 1280, height: 1280);
-      final inputImage = Float32List(1280 * 1280 * 3);
-      int index = 0;
-      for (int y = 0; y < 1280; y++) {
-        for (int x = 0; x < 1280; x++) {
-          final p = resized.getPixel(x, y);
-          inputImage[index++] = p.r / 255.0;
-          inputImage[index++] = p.g / 255.0;
-          inputImage[index++] = p.b / 255.0;
-        }
-      }
-      final input = inputImage.reshape([1, 1280, 1280, 3]);
-      final outputTensor = _interpreter.getOutputTensor(0);
-      final shape = outputTensor.shape;
-      final output = List.generate(
-        shape[0],
-        (_) => List.generate(shape[1], (_) => List.filled(shape[2], 0.0)),
-      );
-
-      print("Running inference...");
-      _interpreter.run(input, output);
-      print("Inference completed.");
-
-      _parseDetections(output[0], threshold: 0.5);
-    } catch (e) {
-      print("Inference failed: $e");
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+Future<void> _processImage(File imageFile) async {
+  try {
+    // Set processing state immediately
+    setState(() {
+      _isProcessing = true;
+    });
+    
+    // Use compute to run in a separate isolate
+    await Future.delayed(Duration.zero); // Allow UI to update first
+    
+    final rawBytes = await imageFile.readAsBytes();
+    final decoded = img.decodeImage(rawBytes);
+    if (decoded == null) {
+      print("Failed to decode image.");
+      return;
     }
+    
+    // Allow UI to update by yielding execution
+    await Future.delayed(Duration.zero);
+    
+    final resized = img.copyResize(decoded, width: 1280, height: 1280);
+    final inputImage = Float32List(1280 * 1280 * 3);
+    
+    // Process the image in chunks to avoid blocking UI
+    int index = 0;
+    for (int y = 0; y < 1280; y++) {
+      for (int x = 0; x < 1280; x++) {
+        final p = resized.getPixel(x, y);
+        inputImage[index++] = p.r / 255.0;
+        inputImage[index++] = p.g / 255.0;
+        inputImage[index++] = p.b / 255.0;
+      }
+      
+      // Every N rows, yield to UI thread
+      if (y % 128 == 0) {
+        await Future.delayed(Duration.zero);
+      }
+    }
+    
+    final input = inputImage.reshape([1, 1280, 1280, 3]);
+    final outputTensor = _interpreter.getOutputTensor(0);
+    final shape = outputTensor.shape;
+    final output = List.generate(
+      shape[0],
+      (_) => List.generate(shape[1], (_) => List.filled(shape[2], 0.0)),
+    );
+
+    print("Running inference...");
+    await Future.delayed(Duration.zero); // Allow UI to update
+    
+    _interpreter.run(input, output);
+    print("Inference completed.");
+
+    _parseDetections(output[0], threshold: 0.5);
+  } catch (e) {
+    print("Inference failed: $e");
+  } finally {
+    setState(() {
+      _isProcessing = false;
+    });
   }
+}
 
   void _parseDetections(List<List<double>> detections, {double threshold = 0.25}) {
     List<Detection> dets = [];
@@ -204,6 +259,10 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions for responsive layout
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
@@ -217,7 +276,7 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
             'Detection Results',
             style: GoogleFonts.montserrat(
               color: Colors.white,
-              fontSize: 26,
+              fontSize: screenHeight * 0.03,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -226,13 +285,16 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.04, 
+            vertical: screenHeight * 0.02
+          ),
           child: Column(
             children: [
               // Image container with bounding boxes
               Container(
                 width: double.infinity,
-                height: 250,
+                height: screenHeight * 0.3,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
                   boxShadow: [
@@ -258,18 +320,22 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: screenHeight * 0.024),
               
               // Processing indicator
               if (_isProcessing)
                 Column(
                   children: [
-                    const CircularProgressIndicator(color: Colors.greenAccent),
-                    const SizedBox(height: 12),
+                    // Animated Rotating Circular Progress Indicator
+                    RotationTransition(
+                      turns: _animationController,
+                      child: const CircularProgressIndicator(color: Colors.greenAccent),
+                    ),
+                    SizedBox(height: screenHeight * 0.012),
                     Text(
                       'Processing image...',
                       style: GoogleFonts.robotoCondensed(
-                        fontSize: 16,
+                        fontSize: screenHeight * 0.018,
                         color: Colors.white70,
                       ),
                     ),
@@ -281,7 +347,7 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
                 Text(
                   'No objects detected.',
                   style: GoogleFonts.robotoCondensed(
-                    fontSize: 16,
+                    fontSize: screenHeight * 0.018,
                     color: Colors.white70,
                   ),
                 ),
@@ -294,20 +360,20 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
                     Text(
                       'Detected Parts',
                       style: GoogleFonts.montserrat(
-                        fontSize: 28,
+                        fontSize: screenHeight * 0.032,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: screenHeight * 0.008),
                     ...List.generate(
                       _finalDetections.length,
                       (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                        padding: EdgeInsets.only(bottom: screenHeight * 0.004),
                         child: Text(
                           '${index + 1}. ${_finalDetections[index].className} (${(_finalDetections[index].score * 100).toStringAsFixed(1)}%)',
                           style: GoogleFonts.robotoCondensed(
-                            fontSize: 22,
+                            fontSize: screenHeight * 0.025,
                             color: Colors.white70,
                           ),
                         ),
@@ -325,7 +391,7 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.018),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
@@ -345,7 +411,7 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> {
                     child: Text(
                       'Back',
                       style: GoogleFonts.montserrat(
-                        fontSize: 18,
+                        fontSize: screenHeight * 0.02,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
