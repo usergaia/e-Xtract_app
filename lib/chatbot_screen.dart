@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:extract_app/part_detection.dart';
 import 'base.dart';
 
@@ -13,11 +15,16 @@ class ChatbotScreen extends StatefulWidget {
 }
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
-  final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   String _selectedCategory = '';
   bool _showCategorySelector = false;
+  List<String> _detectedParts = [];
+  Map<String, dynamic> _knowledgeBase = {};
+  bool _showPartOptions = false;
+  bool _hasDetectedParts = false;
+  bool _imageUploaded = false;
+  String? _lastImagePath;
 
   @override
   void initState() {
@@ -25,11 +32,22 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     // Add welcome message
     _addBotMessage("Hello! I'm your e-waste assistant. I can help you identify valuable parts in your electronic devices. What type of device do you have?");
     _showCategorySelector = true;
+    _loadKnowledgeBase();
+  }
+
+  Future<void> _loadKnowledgeBase() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/knowledge-base.json');
+      setState(() {
+        _knowledgeBase = json.decode(jsonString);
+      });
+    } catch (e) {
+      print("Error loading knowledge base: $e");
+    }
   }
 
   @override
   void dispose() {
-    _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -63,75 +81,77 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _addMessage(text, true);
   }
 
-  void _handleSendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isNotEmpty) {
-      _addUserMessage(text);
-      _messageController.clear();
-      
-      // Simple rule-based responses
-      _processUserMessage(text);
+  void _handlePredefinedResponse(String response) {
+    _addUserMessage(response);
+    
+    // Process the predefined response
+    if (response == "What parts can I extract?") {
+      if (_selectedCategory.isNotEmpty) {
+        _addBotMessage("Based on the image you uploaded, here are the parts I identified in your $_selectedCategory.");
+      } else {
+        _addBotMessage("Please select a device type first.");
+        _showCategorySelector = true;
+      }
+    } else if (response == "How much are the parts worth?") {
+      if (_selectedCategory.isNotEmpty) {
+        _addBotMessage("I can provide an estimate of the value for each part. Select a part to see its value and more details.");
+      } else {
+        _addBotMessage("Please select a device type first.");
+        _showCategorySelector = true;
+      }
+    } else if (response == "How do I recycle this device?") {
+      if (_selectedCategory.isNotEmpty) {
+        _addBotMessage("To properly recycle your $_selectedCategory, you can extract valuable parts first, then take the remaining components to a certified e-waste recycling center. Would you like to know how to extract specific parts?");
+      } else {
+        _addBotMessage("Please select a device type first.");
+        _showCategorySelector = true;
+      }
+    } else if (response == "Change device type") {
+      _selectedCategory = '';
+      _showCategorySelector = true;
+      _showPartOptions = false;
+      _imageUploaded = false;
+      _addBotMessage("Let's change your device type. What type of e-waste do you have?");
+    } else if (_showPartOptions && (_detectedParts.contains(response) || response == "Camera" || response == "Battery")) {
+      // Handle part extraction details
+      _showPartExtractionDetails(response);
     }
   }
 
-  void _processUserMessage(String text) {
-    final lowercaseText = text.toLowerCase();
-    
-    // If category is already selected
-    if (_selectedCategory.isNotEmpty) {
-      if (lowercaseText.contains('part') || 
-          lowercaseText.contains('detect') || 
-          lowercaseText.contains('identify')) {
-        _addBotMessage("I can help identify parts in your $_selectedCategory. Please upload an image or take a photo to get started.");
-      } else if (lowercaseText.contains('value') || 
-                lowercaseText.contains('worth') || 
-                lowercaseText.contains('price')) {
-        _addBotMessage("The value of parts in your $_selectedCategory depends on the specific components. Upload an image, and I'll help identify valuable parts.");
-      } else if (lowercaseText.contains('recycle') || 
-                lowercaseText.contains('dispose')) {
-        _addBotMessage("To properly recycle your $_selectedCategory, first identify valuable parts that can be recovered. I can help with that. Would you like to upload an image?");
-      } else if (lowercaseText.contains('help') || 
-                lowercaseText.contains('how')) {
-        _addBotMessage("I'm here to help you identify valuable parts in your $_selectedCategory. Upload a photo or take a picture, and I'll analyze it for you.");
-      } else if (lowercaseText.contains('change') || 
-                lowercaseText.contains('different') || 
-                lowercaseText.contains('another')) {
-        _selectedCategory = '';
-        _showCategorySelector = true;
-        _addBotMessage("Let's change your device type. What type of e-waste do you have?");
-      } else {
-        _addBotMessage("I'm not sure how to help with that. I can identify parts in your $_selectedCategory if you upload an image or take a photo.");
+  void _showPartExtractionDetails(String partName) {
+    if (_knowledgeBase.containsKey(_selectedCategory) && 
+        _knowledgeBase[_selectedCategory].containsKey(partName)) {
+      
+      final partInfo = _knowledgeBase[_selectedCategory][partName];
+      
+      final value = partInfo['value'] ?? 'Unknown';
+      final steps = partInfo['extraction_steps'] ?? [];
+      final hazards = partInfo['hazards'] ?? [];
+      final recyclingInfo = partInfo['recycling_info'] ?? 'No information available';
+      
+      String detailsMessage = "*$partName Details*\n\n";
+      detailsMessage += "Value: $value\n\n";
+      
+      detailsMessage += "Extraction Steps:\n";
+      for (int i = 0; i < steps.length; i++) {
+        detailsMessage += "${i+1}. ${steps[i]}\n";
       }
+      detailsMessage += "\n";
+      
+      detailsMessage += "Hazards:\n";
+      for (final hazard in hazards) {
+        detailsMessage += "• $hazard\n";
+      }
+      detailsMessage += "\n";
+      
+      detailsMessage += "Recycling Info: $recyclingInfo";
+      
+      _addBotMessage(detailsMessage);
+      
+      // Follow-up question
+      _addBotMessage("Would you like to extract another part or get more information?");
     } else {
-      // Handle category selection from text
-      if (lowercaseText.contains('phone') || 
-          lowercaseText.contains('smartphone') || 
-          lowercaseText.contains('mobile')) {
-        _selectedCategory = 'Smartphone';
-        _showCategorySelector = false;
-        _addBotMessage("Great! I can help with your smartphone. Upload an image or take a photo of your device to identify valuable parts.");
-      } else if (lowercaseText.contains('laptop')) {
-        _selectedCategory = 'Laptop';
-        _showCategorySelector = false;
-        _addBotMessage("I can help with your laptop. Upload an image or take a photo of your laptop to identify valuable parts.");
-      } else if (lowercaseText.contains('desktop') || 
-                lowercaseText.contains('computer')) {
-        _selectedCategory = 'Desktop';
-        _showCategorySelector = false;
-        _addBotMessage("I can help with your desktop computer. Upload an image or take a photo to identify valuable parts.");
-      } else if (lowercaseText.contains('router') || 
-                lowercaseText.contains('modem')) {
-        _selectedCategory = 'Router';
-        _showCategorySelector = false;
-        _addBotMessage("I can help with your router. Upload an image or take a photo to identify valuable parts.");
-      } else if (lowercaseText.contains('landline')) {
-        _selectedCategory = 'Landline Phone';
-        _showCategorySelector = false;
-        _addBotMessage("I can help with your landline phone. Upload an image or take a photo to identify valuable parts.");
-      } else {
-        _addBotMessage("I'm not sure what type of device you have. Please select a category below or type 'smartphone', 'laptop', 'desktop', 'router', or 'landline'.");
-        _showCategorySelector = true;
-      }
+      _addBotMessage("I don't have detailed information about $partName for $_selectedCategory yet. Would you like to know about another part?");
     }
   }
 
@@ -139,6 +159,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     setState(() {
       _selectedCategory = category;
       _showCategorySelector = false;
+      _hasDetectedParts = false;
+      _showPartOptions = false;
+      _imageUploaded = false;
     });
     _addBotMessage("Great! I can help identify valuable parts in your $category. Upload an image or take a photo to get started.");
   }
@@ -150,6 +173,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       final XFile? image = await picker.pickImage(source: source);
       
       if (image != null) {
+        _lastImagePath = image.path;
+        
         // Add image message
         setState(() {
           _messages.add(ChatMessage(
@@ -158,6 +183,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             timestamp: DateTime.now(),
             imagePath: image.path,
           ));
+          _imageUploaded = true;
         });
         
         // Scroll to bottom
@@ -186,7 +212,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ).then((_) {
             // When returned from part detection, add a follow-up message
-            _addBotMessage("I've analyzed your image. Do you have any questions about the detected parts?");
+            if (_selectedCategory == 'Smartphone') {
+              setState(() {
+                _detectedParts = ['Camera', 'Battery', 'LCD Screen', 'Motherboard'];
+                _hasDetectedParts = true;
+                _showPartOptions = true;
+              });
+              _addBotMessage("I've analyzed your smartphone! I found these parts: Camera, Battery, LCD Screen, Motherboard. Which part would you like to extract first?");
+            } else {
+              _addBotMessage("I've analyzed your image. Unfortunately, I don't have detailed extraction information for this device type yet.");
+            }
           });
         } else {
           _addBotMessage("Please select a device category first before uploading an image.");
@@ -235,8 +270,22 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ],
                 ),
               ),
+              
+            // Part options for smartphone
+            if (_showPartOptions && _selectedCategory == 'Smartphone')
+              Container(
+                height: 55,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: _detectedParts.map((part) => 
+                    _buildPartButton(part)
+                  ).toList(),
+                ),
+              ),
             
-            // Input area
+            // Predefined response buttons and actions container
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -248,38 +297,52 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   )
                 ],
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  // Camera button
-                  _buildIconButton(Icons.camera_alt, () => _getImage(ImageSource.camera)),
-                  
-                  // Upload button
-                  _buildIconButton(Icons.photo_library, () => _getImage(ImageSource.gallery)),
-                  
-                  // Text input
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3A3A3A),
-                        borderRadius: BorderRadius.circular(24),
+                  // Action buttons row
+                  Row(
+                    children: [
+                      // Camera button
+                      _buildIconButton(Icons.camera_alt, () => _getImage(ImageSource.camera)),
+                      const SizedBox(width: 8),
+                      
+                      // Upload button
+                      _buildIconButton(Icons.photo_library, () => _getImage(ImageSource.gallery)),
+                      
+                      const Spacer(),
+                      
+                      // Change device type button
+                      _buildTextIconButton("Change device", Icons.refresh, () => 
+                        _handlePredefinedResponse("Change device type")
                       ),
-                      child: TextField(
-                        controller: _messageController,
-                        style: GoogleFonts.roboto(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Type a message...',
-                          hintStyle: GoogleFonts.roboto(color: Colors.white60),
-                          border: InputBorder.none,
-                        ),
-                        onSubmitted: (_) => _handleSendMessage(),
-                      ),
-                    ),
+                    ],
                   ),
                   
-                  // Send button
-                  _buildIconButton(Icons.send, _handleSendMessage, color: const Color(0xFF34A853)),
+                  // Only show these options after an image is uploaded
+                  if (_imageUploaded) ...[
+                    const SizedBox(height: 12),
+                    
+                    // Predefined responses grid
+                    !_showPartOptions ? Row(
+                      children: [
+                        Expanded(
+                          child: _buildResponseButton("What parts can I extract?", 
+                            onTap: () => _handlePredefinedResponse("What parts can I extract?")),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildResponseButton("How much are the parts worth?", 
+                            onTap: () => _handlePredefinedResponse("How much are the parts worth?")),
+                        ),
+                      ],
+                    ) : const SizedBox.shrink(),
+                    
+                    !_showPartOptions ? const SizedBox(height: 8) : const SizedBox.shrink(),
+                    
+                    !_showPartOptions ? _buildResponseButton("How do I recycle this device?", 
+                      onTap: () => _handlePredefinedResponse("How do I recycle this device?")
+                    ) : const SizedBox.shrink(),
+                  ],
                 ],
               ),
             ),
@@ -354,7 +417,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         ),
                       ],
                     )
-                  : Text(
+                  : SelectableText(
                       message.text,
                       style: GoogleFonts.roboto(
                         color: Colors.white,
@@ -405,6 +468,67 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     );
   }
 
+  Widget _buildTextIconButton(String text, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3A3A3A),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResponseButton(String text, {required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              offset: const Offset(0, 2),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryButton(String category, IconData icon) {
     return GestureDetector(
       onTap: () => _selectCategory(category),
@@ -441,6 +565,34 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildPartButton(String partName) {
+    return GestureDetector(
+      onTap: () => _handlePredefinedResponse(partName),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF34A853),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              offset: const Offset(0, 2),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: Text(
+          partName,
+          style: GoogleFonts.roboto(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
