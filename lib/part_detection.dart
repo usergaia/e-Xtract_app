@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:path_provider/path_provider.dart';
 
 class PartDetectionScreen extends StatefulWidget {
   final String category;
@@ -28,6 +30,8 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> with SingleTi
   bool _isModelLoaded = false;
   List<String> _labels = [];
   List<Detection> _finalDetections = [];
+  final GlobalKey _imageWithBoxesKey = GlobalKey();
+  String? _processedImagePath;
   
   // Animation controller for rotating progress indicator
   late AnimationController _animationController;
@@ -291,33 +295,36 @@ Future<void> _processImage(File imageFile) async {
           ),
           child: Column(
             children: [
-              // Image container with bounding boxes
-              Container(
-                width: double.infinity,
-                height: screenHeight * 0.3,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Base image
-                    Image.file(
-                      _image,
-                      fit: BoxFit.contain,
-                    ),
-                    
-                    // Bounding boxes overlay
-                    _buildBoundingBoxes(),
-                  ],
+              // Image container with bounding boxes - add the key
+              RepaintBoundary(
+                key: _imageWithBoxesKey,
+                child: Container(
+                  width: double.infinity,
+                  height: screenHeight * 0.3,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Base image
+                      Image.file(
+                        _image,
+                        fit: BoxFit.contain,
+                      ),
+                      
+                      // Bounding boxes overlay
+                      _buildBoundingBoxes(),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(height: screenHeight * 0.024),
@@ -384,10 +391,27 @@ Future<void> _processImage(File imageFile) async {
                 
               const Spacer(),
               
-              // Back button
+              // Replace the Back button with one that returns detection results
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
+                onTap: () async {
+                  // Capture the processed image if we have detections
+                  if (_finalDetections.isNotEmpty && !_isProcessing) {
+                    await _captureProcessedImage();
+                  }
+                  
+                  // Get the list of detected component names
+                  List<String> detectedComponents = _finalDetections
+                      .map((detection) => detection.className)
+                      .toList();
+                  
+                  // Return both the processed image path and the detected components
+                  Navigator.pop(
+                    context, 
+                    {
+                      'imagePath': _processedImagePath ?? widget.imagePath,
+                      'detectedComponents': detectedComponents,
+                    }
+                  );
                 },
                 child: Container(
                   width: double.infinity,
@@ -477,6 +501,39 @@ Future<void> _processImage(File imageFile) async {
         );
       },
     );
+  }
+
+  // New method to capture the processed image with bounding boxes
+  Future<void> _captureProcessedImage() async {
+    try {
+      final RenderRepaintBoundary boundary = 
+          _imageWithBoxesKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      
+      final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      
+      if (byteData != null) {
+        final Uint8List pngBytes = byteData.buffer.asUint8List();
+        
+        // Create a filename for the processed image
+        final directory = await getTemporaryDirectory();
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final path = '${directory.path}/processed_${timestamp}.png';
+        
+        // Save the image
+        final File imageFile = File(path);
+        await imageFile.writeAsBytes(pngBytes);
+        
+        // Store the path to return to the chatbot
+        setState(() {
+          _processedImagePath = path;
+        });
+        
+        print('Processed image saved to: $path');
+      }
+    } catch (e) {
+      print('Error capturing processed image: $e');
+    }
   }
 }
 
