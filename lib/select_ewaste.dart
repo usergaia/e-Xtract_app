@@ -8,19 +8,33 @@ class SelectEwaste extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions for responsive layout
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Base(
       title: 'Select E-Waste Type',
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(screenWidth * 0.04),
         child: Column(
           children: [
-            const SizedBox(height: 100),
-            Flexible(
+            SizedBox(height: screenHeight * 0.02),
+            Text(
+              'Select a device type below to get started with part extraction and recycling instructions.',
+              style: GoogleFonts.robotoCondensed(
+                fontSize: screenHeight * 0.022,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: screenHeight * 0.03),
+            Expanded(
               child: GridView.count(
                 shrinkWrap: true,
                 crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: screenWidth * 0.04,
+                mainAxisSpacing: screenHeight * 0.02,
                 children: [
                   _buildCategoryButton(context, 'Smartphone', Icons.smartphone),
                   _buildCategoryButton(context, 'Laptop', Icons.laptop_mac),
@@ -30,15 +44,16 @@ class SelectEwaste extends StatelessWidget {
               ),
             ),
             _buildFullWidthButton(context, 'Landline Phone', Icons.phone),
-            const SizedBox(height: 20),
+            SizedBox(height: screenHeight * 0.02),
           ],
         ),
       ),
     );
   }
 
-
   Widget _buildCategoryButton(BuildContext context, String label, IconData icon) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return GestureDetector(
       onTap: () {
         Navigator.push(context,
@@ -57,21 +72,23 @@ class SelectEwaste extends StatelessWidget {
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
               offset: const Offset(0, 4),
-             blurRadius: 10,
+              blurRadius: 10,
             ),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, 
-            color: Colors.white, 
-            size: 90),
-            const SizedBox(height: 10),
+            Icon(
+              icon, 
+              color: Colors.white, 
+              size: screenHeight * 0.08,
+            ),
+            SizedBox(height: screenHeight * 0.01),
             Text(
               label,
               style: GoogleFonts.montserrat(
-                fontSize: 20,
+                fontSize: screenHeight * 0.022,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -84,6 +101,9 @@ class SelectEwaste extends StatelessWidget {
   }
 
   Widget _buildFullWidthButton(BuildContext context, String label, IconData icon) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return GestureDetector(
       onTap: () {
         Navigator.push(context,
@@ -92,7 +112,7 @@ class SelectEwaste extends StatelessWidget {
       },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
@@ -104,21 +124,23 @@ class SelectEwaste extends StatelessWidget {
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
               offset: const Offset(0, 4),
-             blurRadius: 10,
+              blurRadius: 10,
             ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, 
-            color: Colors.white, 
-            size: 90),
-            const SizedBox(width: 10),
+            Icon(
+              icon, 
+              color: Colors.white, 
+              size: screenHeight * 0.08,
+            ),
+            SizedBox(width: screenWidth * 0.03),
             Text(
               label,
               style: GoogleFonts.montserrat(
-                fontSize: 20,
+                fontSize: screenHeight * 0.022,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

@@ -1,0 +1,12 @@
+battery
+fan
+hard-drive
+keyboard
+ram
+ram-covered
+screw
+ssd-covered
+ssd-nvme
+ssd-sata  
+wifi-card  
+wifi-card-covered

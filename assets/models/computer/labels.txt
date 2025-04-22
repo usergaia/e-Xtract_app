@@ -1,0 +1,11 @@
+HDD
+SSD
+case
+cmos
+cooler
+cpu
+fan
+gpu
+mboard
+psu
+ram
