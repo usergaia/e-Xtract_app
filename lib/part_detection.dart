@@ -32,6 +32,7 @@ class _PartDetectionScreenState extends State<PartDetectionScreen> with SingleTi
   List<Detection> _finalDetections = [];
   final GlobalKey _imageWithBoxesKey = GlobalKey();
   String? _processedImagePath;
+  Map<String, String> _croppedComponentImages = {};
   
   // Animation controller for rotating progress indicator
   late AnimationController _animationController;
@@ -404,12 +405,13 @@ Future<void> _processImage(File imageFile) async {
                       .map((detection) => detection.className)
                       .toList();
                   
-                  // Return both the processed image path and the detected components
+                  // Return the processed image path, detected components, and cropped component images
                   Navigator.pop(
                     context, 
                     {
                       'imagePath': _processedImagePath ?? widget.imagePath,
                       'detectedComponents': detectedComponents,
+                      'croppedComponentImages': _croppedComponentImages,
                     }
                   );
                 },
@@ -505,35 +507,114 @@ Future<void> _processImage(File imageFile) async {
 
   // New method to capture the processed image with bounding boxes
   Future<void> _captureProcessedImage() async {
-    try {
-      final RenderRepaintBoundary boundary = 
-          _imageWithBoxesKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  try {
+    // Capture the image with bounding boxes
+    final RenderRepaintBoundary boundary = 
+        _imageWithBoxesKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    
+    final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    
+    if (byteData != null) {
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
       
-      final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      // Create a filename for the processed image
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final path = '${directory.path}/processed_${timestamp}.png';
       
-      if (byteData != null) {
-        final Uint8List pngBytes = byteData.buffer.asUint8List();
-        
-        // Create a filename for the processed image
-        final directory = await getTemporaryDirectory();
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final path = '${directory.path}/processed_${timestamp}.png';
-        
-        // Save the image
-        final File imageFile = File(path);
-        await imageFile.writeAsBytes(pngBytes);
-        
-        // Store the path to return to the chatbot
-        setState(() {
-          _processedImagePath = path;
-        });
-        
-        print('Processed image saved to: $path');
-      }
-    } catch (e) {
-      print('Error capturing processed image: $e');
+      // Save the image
+      final File imageFile = File(path);
+      await imageFile.writeAsBytes(pngBytes);
+      
+      // Store the path to return to the chatbot
+      setState(() {
+        _processedImagePath = path;
+      });
+      
+      // Crop all detected components
+      _croppedComponentImages = await _cropAllDetectedComponents(widget.imagePath);
+      
+      print('Processed image saved to: $path');
+      print('Cropped ${_croppedComponentImages.length} component images');
     }
+  } catch (e) {
+    print('Error capturing processed image: $e');
+  }
+}
+
+  Future<String> _cropComponentImage(String originalImagePath, Rect boundingBox, String componentName) async {
+    try {
+      final rawBytes = await File(originalImagePath).readAsBytes();
+      final decoded = img.decodeImage(rawBytes);
+      
+      if (decoded == null) {
+        throw Exception("Failed to decode image for cropping");
+      }
+      
+      // Calculate the absolute pixel coordinates from normalized coordinates
+      final imageWidth = decoded.width.toDouble();
+      final imageHeight = decoded.height.toDouble();
+      
+      // Apply padding around the bounding box (10%)
+      int padX = (boundingBox.width * imageWidth * 0.1).round();
+      int padY = (boundingBox.height * imageHeight * 0.1).round();
+      
+      // Calculate crop dimensions, ensuring they're within image bounds
+      int cropX = (boundingBox.x * imageWidth - padX).round().clamp(0, decoded.width - 1);
+      int cropY = (boundingBox.y * imageHeight - padY).round().clamp(0, decoded.height - 1);
+      int cropW = (boundingBox.width * imageWidth + padX * 2).round();
+      cropW = cropW.clamp(1, decoded.width - cropX);
+      int cropH = (boundingBox.height * imageHeight + padY * 2).round();
+      cropH = cropH.clamp(1, decoded.height - cropY);
+      
+      // Crop the image
+      final img.Image croppedImg = img.copyCrop(
+        decoded,
+        x: cropX,
+        y: cropY, 
+        width: cropW,
+        height: cropH
+      );
+      
+      // Save to a temporary file
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final sanitizedName = componentName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+      final path = '${tempDir.path}/component_${sanitizedName}_$timestamp.jpg';
+      final File croppedFile = File(path);
+      
+      await croppedFile.writeAsBytes(img.encodeJpg(croppedImg, quality: 90));
+      return path;
+    } catch (e) {
+      print("Error cropping component image: $e");
+      return ""; // Return empty string in case of error
+    }
+  }
+
+  Future<Map<String, String>> _cropAllDetectedComponents(String originalImagePath) async {
+    Map<String, String> componentImages = {};
+    
+    for (var detection in _finalDetections) {
+      final componentPath = await _cropComponentImage(
+        originalImagePath, 
+        detection.boundingBox, 
+        detection.className
+      );
+      
+      if (componentPath.isNotEmpty) {
+        // If there are multiple components with the same name, append a number
+        String key = detection.className;
+        int counter = 1;
+        while (componentImages.containsKey(key)) {
+          key = "${detection.className}_$counter";
+          counter++;
+        }
+        componentImages[key] = componentPath;
+      }
+    }
+    
+    return componentImages;
   }
 }
 
@@ -548,6 +629,11 @@ class Detection {
     required this.className,
   });
 }
+
+// Add after the Detection class
+
+// Store component bounding boxes with their names
+Map<String, List<Rect>> _componentBoundingBoxes = {};
 
 class Rect {
   final double x, y, width, height;

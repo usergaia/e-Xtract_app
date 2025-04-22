@@ -119,31 +119,31 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             if (_selectedImages.isNotEmpty) ...[
               const SizedBox(height: 20),
               ElevatedButton(
-                // In upload_or_camera.dart, modify the ElevatedButton's onPressed:
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PartDetectionScreen(
-                      category: widget.category,
-                      imagePath: _selectedImages.first.path,
-                    ),
-                  ),
-                );
-                
-                if (result != null) {
-                  Navigator.pushReplacement(
+                onPressed: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChatbotScreen(
-                        initialCategory: widget.category,
-                        initialImagePath: _selectedImages.first.path,
-                        initialDetections: result['detectedComponents'] ?? [],
+                      builder: (context) => PartDetectionScreen(
+                        category: widget.category,
+                        imagePath: _selectedImages.first.path,
                       ),
                     ),
                   );
-                }
-              },
+                  
+                  if (result != null) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatbotScreen(
+                          initialCategory: widget.category,
+                          initialImagePath: _selectedImages.first.path,
+                          initialDetections: result['detectedComponents'] ?? [],
+                          initialComponentImages: result['croppedComponentImages'],
+                        ),
+                      ),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 50, 174, 59),
                 ),

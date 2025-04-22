@@ -11,12 +11,14 @@ class ChatbotScreen extends StatefulWidget {
   final String initialCategory;
   final String? initialImagePath;
   final List<String> initialDetections;
+  final Map<dynamic, dynamic>? initialComponentImages; // Add this line
 
   const ChatbotScreen({
     super.key,
     required this.initialCategory,
     this.initialImagePath,
     this.initialDetections = const [],
+    this.initialComponentImages, // Add this line
   });
 
   @override
@@ -26,6 +28,7 @@ class ChatbotScreen extends StatefulWidget {
 class _ChatbotScreenState extends State<ChatbotScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  Map<String, Map<String, String>> _componentImagesPerImage = {};
   String _selectedCategory = '';
   bool _showCategorySelector = false;
   List<String> _detectedParts = [];
@@ -67,9 +70,32 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         imageIndex: 0,
       ));
       
+      // Process initial component images if available
+      if (widget.initialComponentImages != null && widget.initialImagePath != null) {
+        Map<String, String> componentImages = {};
+        widget.initialComponentImages!.forEach((key, value) {
+          componentImages[key.toString()] = value.toString();
+        });
+        _componentImagesPerImage[widget.initialImagePath!] = componentImages;
+      }
+      
+      // Store detected parts for the initial image
+      if (widget.initialImagePath != null && widget.initialDetections.isNotEmpty) {
+        _detectedPartsPerImage[widget.initialImagePath!] = List<String>.from(widget.initialDetections);
+      }
+      
       // Add detection results
       if (widget.initialDetections.isNotEmpty) {
         _addBotMessage("I've detected the following parts in your ${widget.initialCategory}: ${widget.initialDetections.join(', ')}");
+        
+        // Add component images message if available
+        if (widget.initialComponentImages != null && widget.initialComponentImages!.isNotEmpty) {
+          Map<String, String> componentImages = {};
+          widget.initialComponentImages!.forEach((key, value) {
+            componentImages[key.toString()] = value.toString();
+          });
+          _addComponentImagesMessage(componentImages);
+        }
       } else {
         _addBotMessage("I couldn't detect any components in your image. Try a clearer image or different angle.");
       }
@@ -152,10 +178,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            // Get detected parts for the CURRENT image being viewed - with better null handling
+            // Get detected parts for the CURRENT image being viewed
             List<String> getPartsForCurrentImage() {
               try {
-                // Try to get parts from the original image path
                 if (currentIdx < _imagePaths.length) {
                   String currentImagePath = _imagePaths[currentIdx];
                   if (_detectedPartsPerImage.containsKey(currentImagePath)) {
@@ -168,8 +193,24 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               return [];
             }
             
+            // NEW - Get component images for the current image
+            Map<String, String> getComponentImagesForCurrentImage() {
+              try {
+                if (currentIdx < _imagePaths.length) {
+                  String currentImagePath = _imagePaths[currentIdx];
+                  if (_componentImagesPerImage.containsKey(currentImagePath)) {
+                    return _componentImagesPerImage[currentImagePath] ?? {};
+                  }
+                }
+              } catch (e) {
+                print("Error getting component images: $e");
+              }
+              return {};
+            }
+            
             // Get components for the current image index
             List<String> imageParts = getPartsForCurrentImage();
+            Map<String, String> componentImages = getComponentImagesForCurrentImage();
             
             return Dialog(
               backgroundColor: Colors.transparent,
@@ -179,205 +220,285 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   color: const Color(0xFF2A2A2A),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppBar(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      automaticallyImplyLeading: false,
-                      centerTitle: true,  // This removes the default back arrow
-                      title: Text(
-                        message.isResult ? 'Detection Results' : 'Image ${currentIdx + 1}',
-                        style: GoogleFonts.roboto(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                child: DefaultTabController(
+                  length: 2,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppBar(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        automaticallyImplyLeading: false,
+                        centerTitle: true,
+                        title: Text(
+                          message.isResult ? 'Detection Results' : 'Image ${currentIdx + 1}',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        bottom: TabBar(
+                          tabs: [
+                            Tab(text: 'Full Image'),
+                            Tab(text: 'Components'),
+                          ],
+                          indicatorColor: Colors.green,
+                          labelColor: Colors.white,
                         ),
                       ),
-                    ),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      Flexible(
+                        child: TabBarView(
                           children: [
-                            // Image with navigation overlay
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Display the image
-                                Image.file(
-                                  File(message.isResult && _processedImagePathsMap.containsKey(currentIdx) 
-                                      ? _processedImagePathsMap[currentIdx]!
-                                      : _imagePaths[currentIdx]),
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                ),
-                                
-                                // Navigation controls overlay
-                                if (currentBatch.length > 1)
-                                  Positioned.fill(
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            // Tab 1: Full Image View
+                            SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Image with navigation overlay
+                                  Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Display the image
+                                      Image.file(
+                                        File(message.isResult && _processedImagePathsMap.containsKey(currentIdx) 
+                                            ? _processedImagePathsMap[currentIdx]!
+                                            : _imagePaths[currentIdx]),
+                                        width: double.infinity,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      
+                                      // Navigation controls overlay
+                                      if (currentBatch.length > 1)
+                                        Positioned.fill(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              // Previous image button
+                                              GestureDetector(
+                                                onTap: () {
+                                                  int curPos = currentBatch.indexOf(currentIdx);
+                                                  int prevPos = (curPos - 1) % currentBatch.length;
+                                                  if (prevPos < 0) prevPos = currentBatch.length - 1;
+                                                  int prevIdx = currentBatch[prevPos];
+                                                  
+                                                  setDialogState(() {
+                                                    currentIdx = prevIdx;
+                                                    // Update parts list for this image
+                                                    imageParts = getPartsForCurrentImage();
+                                                    componentImages = getComponentImagesForCurrentImage();
+                                                  });
+                                                },
+                                                child: Container(
+                                                  margin: const EdgeInsets.only(left: 8),
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.5),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.arrow_back_ios_new,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                              
+                                              // Next image button
+                                              GestureDetector(
+                                                onTap: () {
+                                                  int curPos = currentBatch.indexOf(currentIdx);
+                                                  int nextPos = (curPos + 1) % currentBatch.length;
+                                                  int nextIdx = currentBatch[nextPos];
+                                                  
+                                                  setDialogState(() {
+                                                    currentIdx = nextIdx;
+                                                    // Update parts list for this image
+                                                    imageParts = getPartsForCurrentImage();
+                                                    componentImages = getComponentImagesForCurrentImage();
+                                                  });
+                                                },
+                                                child: Container(
+                                                  margin: const EdgeInsets.only(right: 8),
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.5),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  
+                                  // Image counter
+                                  if (currentBatch.length > 1)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Center(
+                                        child: Text(
+                                          'Image ${currentBatch.indexOf(currentIdx) + 1} of ${currentBatch.length}',
+                                          style: GoogleFonts.roboto(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  
+                                  // Display components section
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
                                       children: [
-                                        // Previous image button
-                                        GestureDetector(
-                                          onTap: () {
-                                            int curPos = currentBatch.indexOf(currentIdx);
-                                            int prevPos = (curPos - 1) % currentBatch.length;
-                                            if (prevPos < 0) prevPos = currentBatch.length - 1;
-                                            int prevIdx = currentBatch[prevPos];
-                                            
-                                            setDialogState(() {
-                                              currentIdx = prevIdx;
-                                              // Update parts list for this image
-                                              imageParts = getPartsForCurrentImage();
-                                            });
-                                          },
-                                          child: Container(
-                                            margin: const EdgeInsets.only(left: 8),
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.5),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.arrow_back_ios_new,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
+                                        Text(
+                                          'Detected Components',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.roboto(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        
-                                        // Next image button
-                                        GestureDetector(
-                                          onTap: () {
-                                            int curPos = currentBatch.indexOf(currentIdx);
-                                            int nextPos = (curPos + 1) % currentBatch.length;
-                                            int nextIdx = currentBatch[nextPos];
-                                            
-                                            setDialogState(() {
-                                              currentIdx = nextIdx;
-                                              // Update parts list for this image
-                                              imageParts = getPartsForCurrentImage();
-                                            });
-                                          },
-                                          child: Container(
-                                            margin: const EdgeInsets.only(right: 8),
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.5),
-                                              shape: BoxShape.circle,
+                                        const SizedBox(height: 8),
+                                        // Display components or "None detected" message
+                                        if (imageParts.isNotEmpty)
+                                          ...imageParts.map((part) => Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  part,
+                                                  style: GoogleFonts.roboto(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            child: const Icon(
-                                              Icons.arrow_forward_ios,
-                                              color: Colors.white,
-                                              size: 20,
+                                          )).toList()
+                                        else
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 8.0),
+                                            child: Text(
+                                              'No components detected in this image.',
+                                              style: GoogleFonts.roboto(
+                                                color: Colors.white70,
+                                                fontSize: 14,
+                                                fontStyle: FontStyle.italic,
+                                              ),
                                             ),
                                           ),
-                                        ),
                                       ],
                                     ),
                                   ),
-                              ],
+                                ],
+                              ),
                             ),
                             
-                            // Image counter
-                            if (currentBatch.length > 1)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text(
-                                    'Image ${currentBatch.indexOf(currentIdx) + 1} of ${currentBatch.length}',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            
-                            // Display components section with "No components detected" fallback
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Detected Components',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Display components or "None detected" message
-                                  if (imageParts.isNotEmpty)
-                                    ...imageParts.map((part) => Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            part,
-                                            style: GoogleFonts.roboto(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                            ),
+                            // Tab 2: Component Images - NEW
+                            SingleChildScrollView(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (componentImages.isNotEmpty)
+                                      ...componentImages.entries.map((entry) {
+                                        final componentName = entry.key;
+                                        final imagePath = entry.value;
+                                        
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                componentName,
+                                                style: GoogleFonts.roboto(
+                                                  color: Colors.white,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.file(
+                                                  File(imagePath),
+                                                  width: double.infinity,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              const Divider(color: Colors.white24),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    )).toList()
-                                  else
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8.0),
-                                      child: Text(
-                                        'No components detected in this image.',
-                                        style: GoogleFonts.roboto(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                          fontStyle: FontStyle.italic,
+                                        );
+                                      }).toList()
+                                    else
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 30.0),
+                                          child: Column(
+                                            children: [
+                                              const Icon(Icons.crop_free, color: Colors.white38, size: 48),
+                                              const SizedBox(height: 16),
+                                              Text(
+                                                'No component images available',
+                                                style: GoogleFonts.roboto(
+                                                  color: Colors.white70,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF34A853),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF34A853),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Close',
-                            style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          child: Container(
+                            width: double.infinity,
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Close',
+                              style: GoogleFonts.roboto(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -584,16 +705,26 @@ Future<void> _getImage(ImageSource source) async {
           final List<dynamic> detectedComponentsRaw = result['detectedComponents'] as List<dynamic>? ?? [];
           final List<String> detectedParts = detectedComponentsRaw.cast<String>();
           
+          // Extract cropped component images - NEW!
+          final Map<dynamic, dynamic>? croppedImagesRaw = result['croppedComponentImages'] as Map<dynamic, dynamic>?;
+          Map<String, String> croppedImages = {};
+          if (croppedImagesRaw != null) {
+            croppedImagesRaw.forEach((key, value) {
+              croppedImages[key.toString()] = value.toString();
+            });
+            _componentImagesPerImage[imagePath] = croppedImages;
+          }
+          
           // Store processed image path mapped to its index for navigation
           _processedImagePathsMap[imageIndex] = processedImagePath;
           
           setState(() {
-            // Store the detected parts specifically for this image (even if empty)
+            // Store the detected parts specifically for this image
             _detectedPartsPerImage[imagePath] = detectedParts;
             
             // Only update the current parts if we're still looking at this image
             if (_currentImageIndex == imageIndex) {
-              _detectedParts = List<String>.from(detectedParts); // Make a copy to avoid reference issues
+              _detectedParts = List<String>.from(detectedParts);
               _hasDetectedParts = detectedParts.isNotEmpty;
               _showPartOptions = _hasDetectedParts;
             }
@@ -602,11 +733,16 @@ Future<void> _getImage(ImageSource source) async {
           // Customize message based on whether parts were detected
           if (detectedParts.isNotEmpty) {
             _addBotMessage("I've analyzed image ${i + 1} of ${selectedImages.length}! Detected parts: ${detectedParts.join(', ')}");
+            
+            // NEW - Add a message with the cropped component images
+            if (croppedImages.isNotEmpty) {
+              _addComponentImagesMessage(croppedImages);
+            }
           } else {
             _addBotMessage("I've analyzed image ${i + 1} of ${selectedImages.length}, but couldn't detect any components. Try a clearer image or different angle.");
           }
           
-          // Add result message with the processed image and exact detected parts (even if empty)
+          // Add result message with the processed image
           _messages.add(ChatMessage(
             text: "Analysis results for image ${i + 1}",
             isUser: false,
@@ -614,7 +750,7 @@ Future<void> _getImage(ImageSource source) async {
             imagePath: processedImagePath,
             imageIndex: imageIndex,
             isResult: true,
-            detectedParts: List<String>.from(detectedParts), // Make a copy to ensure data consistency
+            detectedParts: List<String>.from(detectedParts),
           ));
           
           _scrollToBottom();
@@ -647,6 +783,19 @@ void _scrollToBottom() {
       );
     }
   });
+}
+
+void _addComponentImagesMessage(Map<String, String> componentImages) {
+  setState(() {
+    _messages.add(ChatMessage(
+      text: "Here are the components I detected:",
+      isUser: false,
+      timestamp: DateTime.now(),
+      componentImages: componentImages,
+    ));
+  });
+  
+  _scrollToBottom();
 }
 
   @override
@@ -806,183 +955,241 @@ Widget _buildChatMessage(ChatMessage message) {
                 bottomRight: const Radius.circular(16),
               ),
             ),
-            child: message.imagePath != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          // Show full-screen image with details
-                          _showImageDetailsDialog(message);
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Stack(
-                            children: [
-                              Image.file(
-                                File(message.imagePath!),
-                                width: 200,
-                                height: 200,
-                                fit: BoxFit.cover,
-                              ),
-                              if (message.isResult)
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.7),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Text(
-                                      'Results',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text(
-                            message.isResult 
-                                ? 'Analysis results' 
-                                : 'Image ${message.imageIndex != null ? (message.imageIndex! + 1) : ""}',
-                            style: GoogleFonts.roboto(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Spacer(),
-                          // Navigation controls - fixed version
-                          if (_imagePaths.length > 1 && message.imageIndex != null && currentBatch.length > 1)
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    // Navigate to previous image in this batch
-                                    int prevPos = (currentPosInBatch - 1) % currentBatch.length;
-                                    if (prevPos < 0) prevPos = currentBatch.length - 1;
-                                    int prevIdx = currentBatch[prevPos];
-                                    
-                                    String imagePath = message.isResult && _processedImagePathsMap.containsKey(prevIdx)
-                                        ? _processedImagePathsMap[prevIdx]!
-                                        : _imagePaths[prevIdx];
-                                    
-                                    setState(() {
-                                      // Update this message
-                                      int idx = _messages.indexOf(message);
-                                      if (idx >= 0) {
-                                        _messages[idx] = ChatMessage(
-                                          text: message.text,
-                                          isUser: message.isUser,
-                                          timestamp: message.timestamp,
-                                          imagePath: imagePath,
-                                          imageIndex: prevIdx,
-                                          isResult: message.isResult,
-                                          detectedParts: message.isResult && _detectedPartsPerImage.containsKey(_imagePaths[prevIdx])
-                                              ? _detectedPartsPerImage[_imagePaths[prevIdx]] : null,
-                                        );
-                                      }
-                                      
-                                      // Also update current state
-                                      _currentImageIndex = prevIdx;
-                                      _updateDisplayedParts(prevIdx);
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black26,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.arrow_back_ios,
-                                      color: Colors.white70,
-                                      size: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${currentPosInBatch + 1}/${currentBatch.length}',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    // Navigate to next image in this batch
-                                    int nextPos = (currentPosInBatch + 1) % currentBatch.length;
-                                    int nextIdx = currentBatch[nextPos];
-                                    
-                                    String imagePath = message.isResult && _processedImagePathsMap.containsKey(nextIdx)
-                                        ? _processedImagePathsMap[nextIdx]!
-                                        : _imagePaths[nextIdx];
-                                    
-                                    setState(() {
-                                      // Update this message
-                                      int idx = _messages.indexOf(message);
-                                      if (idx >= 0) {
-                                        _messages[idx] = ChatMessage(
-                                          text: message.text,
-                                          isUser: message.isUser,
-                                          timestamp: message.timestamp,
-                                          imagePath: imagePath,
-                                          imageIndex: nextIdx,
-                                          isResult: message.isResult,
-                                          detectedParts: message.isResult && _detectedPartsPerImage.containsKey(_imagePaths[nextIdx])
-                                              ? _detectedPartsPerImage[_imagePaths[nextIdx]] : null,
-                                        );
-                                      }
-                                      
-                                      // Also update current state
-                                      _currentImageIndex = nextIdx;
-                                      _updateDisplayedParts(nextIdx);
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black26,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: Colors.white70,
-                                      size: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ],
-                  )
-                : SelectableText(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Text content
+                if (message.text.isNotEmpty)
+                  SelectableText(
                     message.text,
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 16,
                     ),
                   ),
+                
+                // Main image
+                if (message.imagePath != null) ...[
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () {
+                      _showImageDetailsDialog(message);
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        children: [
+                          Image.file(
+                            File(message.imagePath!),
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                          if (message.isResult)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'Results',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        message.isResult 
+                            ? 'Analysis results' 
+                            : 'Image ${message.imageIndex != null ? (message.imageIndex! + 1) : ""}',
+                        style: GoogleFonts.roboto(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Navigation controls
+                      if (_imagePaths.length > 1 && message.imageIndex != null && currentBatch.length > 1)
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // Navigate to previous image in this batch
+                                int prevPos = (currentPosInBatch - 1) % currentBatch.length;
+                                if (prevPos < 0) prevPos = currentBatch.length - 1;
+                                int prevIdx = currentBatch[prevPos];
+                                
+                                String imagePath = message.isResult && _processedImagePathsMap.containsKey(prevIdx)
+                                    ? _processedImagePathsMap[prevIdx]!
+                                    : _imagePaths[prevIdx];
+                                
+                                setState(() {
+                                  // Update this message
+                                  int idx = _messages.indexOf(message);
+                                  if (idx >= 0) {
+                                    _messages[idx] = ChatMessage(
+                                      text: message.text,
+                                      isUser: message.isUser,
+                                      timestamp: message.timestamp,
+                                      imagePath: imagePath,
+                                      imageIndex: prevIdx,
+                                      isResult: message.isResult,
+                                      detectedParts: message.isResult && _detectedPartsPerImage.containsKey(_imagePaths[prevIdx])
+                                          ? _detectedPartsPerImage[_imagePaths[prevIdx]] : null,
+                                    );
+                                  }
+                                  
+                                  // Also update current state
+                                  _currentImageIndex = prevIdx;
+                                  _updateDisplayedParts(prevIdx);
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black26,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white70,
+                                  size: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${currentPosInBatch + 1}/${currentBatch.length}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                // Navigate to next image in this batch
+                                int nextPos = (currentPosInBatch + 1) % currentBatch.length;
+                                int nextIdx = currentBatch[nextPos];
+                                
+                                String imagePath = message.isResult && _processedImagePathsMap.containsKey(nextIdx)
+                                    ? _processedImagePathsMap[nextIdx]!
+                                    : _imagePaths[nextIdx];
+                                
+                                setState(() {
+                                  // Update this message
+                                  int idx = _messages.indexOf(message);
+                                  if (idx >= 0) {
+                                    _messages[idx] = ChatMessage(
+                                      text: message.text,
+                                      isUser: message.isUser,
+                                      timestamp: message.timestamp,
+                                      imagePath: imagePath,
+                                      imageIndex: nextIdx,
+                                      isResult: message.isResult,
+                                      detectedParts: message.isResult && _detectedPartsPerImage.containsKey(_imagePaths[nextIdx])
+                                          ? _detectedPartsPerImage[_imagePaths[nextIdx]] : null,
+                                    );
+                                  }
+                                  
+                                  // Also update current state
+                                  _currentImageIndex = nextIdx;
+                                  _updateDisplayedParts(nextIdx);
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black26,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white70,
+                                  size: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+                
+                // NEW - Component images in a horizontal scrollable list
+                if (message.componentImages != null && message.componentImages!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Detected Components:',
+                    style: GoogleFonts.roboto(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 140,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: message.componentImages!.length,
+                      itemBuilder: (context, index) {
+                        final componentName = message.componentImages!.keys.elementAt(index);
+                        final imagePath = message.componentImages![componentName]!;
+                        
+                        return Container(
+                          width: 120,
+                          margin: const EdgeInsets.only(right: 10),
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  File(imagePath),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                componentName,
+                                style: GoogleFonts.roboto(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
         
         const SizedBox(width: 8),
         
-        // Avatar placeholder for user messages (for alignment)
+        // Avatar placeholder for user messages
         if (message.isUser)
           Container(
             width: 36,
@@ -1160,6 +1367,7 @@ class ChatMessage {
   final int? imageIndex;
   final bool isResult;
   final List<String>? detectedParts;
+  final Map<String, String>? componentImages; // NEW - Map of component name to image path
 
   ChatMessage({
     required this.text,
@@ -1169,5 +1377,6 @@ class ChatMessage {
     this.imageIndex,
     this.isResult = false,
     this.detectedParts,
+    this.componentImages,
   });
 }
