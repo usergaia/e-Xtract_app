@@ -2,6 +2,7 @@ import 'package:extract_app/part_detection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:extract_app/chatbot_screen.dart';
 import 'dart:io'; 
 import 'base.dart';
 
@@ -118,17 +119,31 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             if (_selectedImages.isNotEmpty) ...[
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
+                // In upload_or_camera.dart, modify the ElevatedButton's onPressed:
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PartDetectionScreen(
+                      category: widget.category,
+                      imagePath: _selectedImages.first.path,
+                    ),
+                  ),
+                );
+                
+                if (result != null) {
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PartDetectionScreen(
-                        category: widget.category,
-                        imagePath: _selectedImages.first.path,
+                      builder: (context) => ChatbotScreen(
+                        initialCategory: widget.category,
+                        initialImagePath: _selectedImages.first.path,
+                        initialDetections: result['detectedComponents'] ?? [],
                       ),
                     ),
                   );
-                },
+                }
+              },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 50, 174, 59),
                 ),

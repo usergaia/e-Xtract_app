@@ -8,7 +8,16 @@ import 'package:extract_app/part_detection.dart';
 import 'base.dart';
 
 class ChatbotScreen extends StatefulWidget {
-  const ChatbotScreen({super.key});
+  final String initialCategory;
+  final String? initialImagePath;
+  final List<String> initialDetections;
+
+  const ChatbotScreen({
+    super.key,
+    required this.initialCategory,
+    this.initialImagePath,
+    this.initialDetections = const [],
+  });
 
   @override
   State<ChatbotScreen> createState() => _ChatbotScreenState();
@@ -33,12 +42,41 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Set initial category
+    _selectedCategory = widget.initialCategory;
+    
     // Add welcome message
-    _addBotMessage("Hello! I'm your e-waste assistant. I can help you identify valuable parts in your electronic devices. What type of device do you have?");
-    _showCategorySelector = true;
+    _addBotMessage("Hello! I'm your e-waste assistant. I can help you identify and extract valuable parts from your ${widget.initialCategory}.");
+    
+    // If we have an initial image, process it
+    if (widget.initialImagePath != null) {
+      _imagePaths.add(widget.initialImagePath!);
+      _currentImageIndex = 0;
+      _detectedParts = List.from(widget.initialDetections);
+      _hasDetectedParts = _detectedParts.isNotEmpty;
+      _showPartOptions = _hasDetectedParts;
+      _imageUploaded = true;
+      
+      // Add the image to messages
+      _messages.add(ChatMessage(
+        text: '',
+        isUser: true,
+        timestamp: DateTime.now(),
+        imagePath: widget.initialImagePath!,
+        imageIndex: 0,
+      ));
+      
+      // Add detection results
+      if (widget.initialDetections.isNotEmpty) {
+        _addBotMessage("I've detected the following parts in your ${widget.initialCategory}: ${widget.initialDetections.join(', ')}");
+      } else {
+        _addBotMessage("I couldn't detect any components in your image. Try a clearer image or different angle.");
+      }
+    }
+    
     _loadKnowledgeBase();
   }
-
   void _navigateImages(int currentIndex, int direction) {
     if (_imagePaths.isEmpty) return;
     
@@ -630,24 +668,6 @@ void _scrollToBottom() {
                 },
               ),
             ),
-            
-            // Category selector
-            if (_showCategorySelector)
-              Container(
-                height: 100,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _buildCategoryButton('Smartphone', Icons.smartphone),
-                    _buildCategoryButton('Laptop', Icons.laptop_mac),
-                    _buildCategoryButton('Desktop', Icons.desktop_windows),
-                    _buildCategoryButton('Router', Icons.router),
-                    _buildCategoryButton('Landline Phone', Icons.phone),
-                  ],
-                ),
-              ),
               
             // Part options for smartphone
             if (_showPartOptions && _selectedCategory == 'Smartphone')
