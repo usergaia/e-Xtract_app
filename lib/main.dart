@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                       SizedBox(height: screenHeight * 0.01),
                       Text(
                         'Identify and extract valuable components in your e-waste instantly.',
-                        style: GoogleFonts.robotoCondensed(
+                        style: GoogleFonts.montserrat(
                           fontSize:
                               screenHeight * 0.022, // Responsive font size
                           fontWeight: FontWeight.w600,
@@ -191,7 +191,7 @@ class HomeScreen extends StatelessWidget {
         SizedBox(height: screenHeight * 0.01),
         Text(
           subtitle,
-          style: GoogleFonts.robotoCondensed(
+          style: GoogleFonts.montserrat(
             fontSize: screenHeight * 0.02,
             color: Colors.white70,
           ),

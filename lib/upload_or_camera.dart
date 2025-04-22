@@ -49,7 +49,7 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
             const SizedBox(height: 50),
             Text(
               'Upload pictures of your e-waste or use your camera.',
-              style: GoogleFonts.robotoCondensed(
+              style: GoogleFonts.montserrat(
                 color: Colors.white70,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
