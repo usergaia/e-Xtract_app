@@ -110,14 +110,14 @@ Future<void> _loadModelAndProcessImage() async {
   String _getModelPathBasedOnCategory(String category) {
     switch (category) {
       case 'Smartphone':
-        return 'assets/models/smartphone/best_phone.tflite';
+        return 'assets/models/smartphone/best_phone_float16.tflite';
       case 'Laptop':
-        return 'assets/models/laptop/best_laptop.tflite';
+        return 'assets/models/laptop/best_laptop_float16.tflite';
       case 'Desktop':
-        return 'assets/models/computer/best_computer.tflite';
+        return 'assets/models/computer/best_computer_float16.tflite';
       case 'Router':
       case 'Landline Phone':
-        return 'assets/models/telecom/best_telecom.tflite';
+        return 'assets/models/telecom/best_telecom_float16.tflite';
       default:
         throw Exception("Model not found for category: $category");
     }
