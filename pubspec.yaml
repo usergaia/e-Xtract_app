@@ -75,7 +75,7 @@ flutter:
     - assets/models/computer/labels.txt
     - assets/models/smartphone/best_phone_float16.tflite
     - assets/models/smartphone/labels.txt
-    - assets/models/telecom/best_telecom_float16.tflite
+    - assets/models/telecom/best_router_float16.tflite
     - assets/models/telecom/labels.txt
 
 
