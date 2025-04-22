@@ -125,7 +125,9 @@ class HomeScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+                            MaterialPageRoute(builder: (context) => const ChatbotScreen(
+                              initialCategory: '', // Provide an empty string or default category
+                            )),
                           );
                         },
                         icon: Icons.chat_bubble_outline,
