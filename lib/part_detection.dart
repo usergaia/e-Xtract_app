@@ -433,7 +433,7 @@ Future<void> _processImage(File imageFile) async {
                   ),
                   child: Center(
                     child: Text(
-                      'Back',
+                      'Continue',
                       style: GoogleFonts.montserrat(
                         fontSize: screenHeight * 0.02,
                         fontWeight: FontWeight.bold,
