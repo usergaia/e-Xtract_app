@@ -120,27 +120,7 @@ class HomeScreen extends StatelessWidget {
                       ),
 
                       SizedBox(height: screenHeight * 0.015),
-
-                      // Chat with Assistant button
-                      _buildButton(
-                        context: context,
-                        text: 'Chat with Assistant',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => const ChatbotScreen(
-                                    initialCategory:
-                                        '', // Provide an empty string or default category
-                                  ),
-                            ),
-                          );
-                        },
-                        icon: Icons.chat_bubble_outline,
-                      ),
-
-                      SizedBox(height: screenHeight * 0.02),
+                      
                     ],
                   ),
                 ),
