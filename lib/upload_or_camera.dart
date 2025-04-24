@@ -120,31 +120,73 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => PartDetectionScreen(
-                            category: widget.category,
-                            imagePath: _selectedImages.first.path,
-                          ),
-                    ),
-                  );
+                  List<Map<String, dynamic>> results = [];
 
-                  if (result != null) {
+                  for (var image in _selectedImages) {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PartDetectionScreen(
+                          category: widget.category,
+                          imagePath: image.path,
+                        ),
+                      ),
+                    );
+
+                    if (result != null) {
+                      results.add({
+                        'imagePath': image.path,
+                        'detectedComponents': result['detectedComponents'] ?? [],
+                        'croppedComponentImages': result['croppedComponentImages'] ?? {},
+                      });
+                    }
+                  }
+
+                  if (results.isNotEmpty) {
+                    // Prepare data for ChatbotScreen
+                    final List<String> imagePaths = results.map((result) => result['imagePath'] as String).toList();
+                    final Map<String, List<String>> detectedPartsPerImage = {
+                      for (var result in results)
+                        result['imagePath']: List<String>.from(result['detectedComponents']),
+                    };
+                    final Map<String, Map<String, String>> componentImagesPerImage = {
+                      for (var result in results)
+                        result['imagePath']: Map<String, String>.from(result['croppedComponentImages']),
+                    };
+
+// Assign each image an index for batch tracking
+                    final List<int> initialBatch = List.generate(imagePaths.length, (i) => i);
+
+                    // Pass all images and their data to ChatbotScreen
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (context) => ChatbotScreen(
-                              initialCategory: widget.category,
-                              initialImagePath: _selectedImages.first.path,
-                              initialDetections:
-                                  result['detectedComponents'] ?? [],
-                              initialComponentImages:
-                                  result['croppedComponentImages'],
-                            ),
+                        builder: (context) => ChatbotScreen(
+                          initialCategory: widget.category,
+                          initialImagePath: imagePaths.first,
+                          initialDetections: detectedPartsPerImage[imagePaths.first] ?? [],
+                          initialComponentImages: componentImagesPerImage,
+                          initialBatch: initialBatch, // NEW: Pass batch
+                        ),
                       ),
+                    );
+
+
+                    // Prepare the full data and preserve index batch mapping
+
+
+
+                    // Ensure all images are initialized in ChatbotScreen
+                    for (var imagePath in imagePaths) {
+                      if (imagePath != imagePaths.first) {
+                        detectedPartsPerImage[imagePath] ??= [];
+                        componentImagesPerImage[imagePath] ??= {};
+                      }
+                    }
+                  } else {
+                    // Show an error message if no results were processed
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No images were processed. Please try again.')),
                     );
                   }
                 },
