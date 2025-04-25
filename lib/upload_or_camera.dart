@@ -154,7 +154,7 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
                         result['imagePath']: Map<String, String>.from(result['croppedComponentImages']),
                     };
 
-// Assign each image an index for batch tracking
+                    // Assign each image an index for batch tracking
                     final List<int> initialBatch = List.generate(imagePaths.length, (i) => i);
 
                     // Pass all images and their data to ChatbotScreen
@@ -163,18 +163,15 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
                       MaterialPageRoute(
                         builder: (context) => ChatbotScreen(
                           initialCategory: widget.category,
-                          initialImagePath: imagePaths.first,
-                          initialDetections: detectedPartsPerImage[imagePaths.first] ?? [],
-                          initialComponentImages: componentImagesPerImage,
-                          initialBatch: initialBatch, // NEW: Pass batch
+                          initialImagePath: null, // No single initial image
+                          initialDetections: [], // No single initial detections
+                          initialComponentImages: componentImagesPerImage, // Pass all component images
+                          initialBatch: initialBatch, // Pass batch
                         ),
                       ),
                     );
 
-
                     // Prepare the full data and preserve index batch mapping
-
-
 
                     // Ensure all images are initialized in ChatbotScreen
                     for (var imagePath in imagePaths) {

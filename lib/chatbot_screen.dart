@@ -48,13 +48,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Set initial category
     _selectedCategory = widget.initialCategory;
-    
+
     // Add welcome message
     _addBotMessage("Hello! I'm your e-waste assistant. I can help you identify and extract valuable parts from your ${widget.initialCategory}.");
-    
+
     // Process all images and their associated data
     if (widget.initialComponentImages != null) {
       widget.initialComponentImages!.forEach((imagePath, components) {
@@ -62,48 +62,40 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           _imagePaths.add(imagePath);
           _detectedPartsPerImage[imagePath] = (components as Map).keys.toList().cast<String>();
           _componentImagesPerImage[imagePath] = Map<String, String>.from(components);
+
+          // Add image message
+          _messages.add(ChatMessage(
+            text: '',
+            isUser: true,
+            timestamp: DateTime.now(),
+            imagePath: imagePath,
+            imageIndex: _imagePaths.indexOf(imagePath),
+          ));
+
+          // Add detection results for this image
+          final detectedParts = _detectedPartsPerImage[imagePath] ?? [];
+          if (detectedParts.isNotEmpty) {
+            _addBotMessage("I've detected the following parts in your ${widget.initialCategory}: ${detectedParts.join(', ')}");
+
+            // Add component images message if available
+            if (_componentImagesPerImage[imagePath] != null) {
+              _addComponentImagesMessage(_componentImagesPerImage[imagePath]!);
+            }
+          } else {
+            _addBotMessage("I couldn't detect any components in your image. Try a clearer image or different angle.");
+          }
         }
       });
     }
 
-      // Register batch from UploadOrCamera if provided
-  if (widget.initialBatch != null && widget.initialBatch!.isNotEmpty) {
-    _uploadBatches.add(widget.initialBatch!);
-  }
-
-    
-    // Set the first image as the current image
-    if (_imagePaths.isNotEmpty) {
-      _currentImageIndex = 0;
-      String firstImagePath = _imagePaths[_currentImageIndex];
-      _detectedParts = _detectedPartsPerImage[firstImagePath] ?? [];
-      _hasDetectedParts = _detectedParts.isNotEmpty;
-      _showPartOptions = _hasDetectedParts;
-      
-      // Add the first image to messages
-      _messages.add(ChatMessage(
-        text: '',
-        isUser: true,
-        timestamp: DateTime.now(),
-        imagePath: firstImagePath,
-        imageIndex: _currentImageIndex,
-      ));
-      
-      // Add detection results for the first image
-      if (_detectedParts.isNotEmpty) {
-        _addBotMessage("I've detected the following parts in your ${widget.initialCategory}: ${_detectedParts.join(', ')}");
-        
-        // Add component images message if available
-        if (_componentImagesPerImage[firstImagePath] != null) {
-          _addComponentImagesMessage(_componentImagesPerImage[firstImagePath]!);
-        }
-      } else {
-        _addBotMessage("I couldn't detect any components in your image. Try a clearer image or different angle.");
-      }
+    // Register batch from UploadOrCamera if provided
+    if (widget.initialBatch != null && widget.initialBatch!.isNotEmpty) {
+      _uploadBatches.add(widget.initialBatch!);
     }
-    
+
     _loadKnowledgeBase();
   }
+
   void _navigateImages(int currentIndex, int direction) {
     if (_imagePaths.isEmpty) return;
     
@@ -664,14 +656,14 @@ Future<void> _getImage(ImageSource source) async {
       var image = selectedImages[i];
       final String imagePath = image.path;
       final int imageIndex = _imagePaths.length;
-      
+
       // Add this image index to the current batch
       newBatch.add(imageIndex);
-      
+
       setState(() {
         _imagePaths.add(imagePath);
         _currentImageIndex = imageIndex;
-        
+
         // Add image message
         _messages.add(ChatMessage(
           text: selectedImages.length > 1 ? 'Image ${i + 1}' : '',
@@ -682,12 +674,12 @@ Future<void> _getImage(ImageSource source) async {
         ));
         _imageUploaded = true;
       });
-      
+
       _scrollToBottom();
-      
+
       // Add per-image processing message
       _addBotMessage("Processing image ${i + 1} of ${selectedImages.length}...");
-      
+
       // Process the image if a category is selected
       if (_selectedCategory.isNotEmpty) {
         try {
@@ -700,13 +692,13 @@ Future<void> _getImage(ImageSource source) async {
               ),
             ),
           );
-          
+
           if (result != null) {
             // Extract data from the result map
             final processedImagePath = result['imagePath'] as String;
             final List<dynamic> detectedComponentsRaw = result['detectedComponents'] as List<dynamic>? ?? [];
             final List<String> detectedParts = detectedComponentsRaw.cast<String>();
-            
+
             // Extract cropped component images
             final Map<dynamic, dynamic>? croppedImagesRaw = result['croppedComponentImages'] as Map<dynamic, dynamic>?;
             Map<String, String> croppedImages = {};
@@ -716,14 +708,14 @@ Future<void> _getImage(ImageSource source) async {
               });
               _componentImagesPerImage[imagePath] = croppedImages;
             }
-            
+
             // Store processed image path mapped to its index for navigation
             _processedImagePathsMap[imageIndex] = processedImagePath;
-            
+
             setState(() {
               // Store the detected parts specifically for this image
               _detectedPartsPerImage[imagePath] = detectedParts;
-              
+
               // Only update the current parts if we're still looking at this image
               if (_currentImageIndex == imageIndex) {
                 _detectedParts = List<String>.from(detectedParts);
@@ -731,22 +723,22 @@ Future<void> _getImage(ImageSource source) async {
                 _showPartOptions = _hasDetectedParts;
               }
             });
-            
-            // Customize message based on whether parts were detected
+
+            // Add a message for this image's detected components
             if (detectedParts.isNotEmpty) {
-              _addBotMessage("I've analyzed image ${i + 1}${selectedImages.length > 1 ? ' of ${selectedImages.length}' : ''}! Detected parts: ${detectedParts.join(', ')}");
-              
+              _addBotMessage("I've analyzed image ${i + 1} of ${selectedImages.length}! Detected parts: ${detectedParts.join(', ')}");
+
               // Add a message with the cropped component images
               if (croppedImages.isNotEmpty) {
                 _addComponentImagesMessage(croppedImages);
               }
             } else {
-              _addBotMessage("I've analyzed image ${i + 1}${selectedImages.length > 1 ? ' of ${selectedImages.length}' : ''}, but couldn't detect any components. Try a clearer image or different angle.");
+              _addBotMessage("I've analyzed image ${i + 1} of ${selectedImages.length}, but couldn't detect any components. Try a clearer image or different angle.");
             }
-            
+
             // Add result message with the processed image
             _messages.add(ChatMessage(
-              text: "Analysis results for image ${i + 1}",                                                             
+              text: "Analysis results for image ${i + 1}",
               isUser: false,
               timestamp: DateTime.now(),
               imagePath: processedImagePath,
@@ -754,7 +746,7 @@ Future<void> _getImage(ImageSource source) async {
               isResult: true,
               detectedParts: List<String>.from(detectedParts),
             ));
-            
+
             _scrollToBottom();
           }
         } catch (e) {
