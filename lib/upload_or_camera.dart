@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:extract_app/chatbot_screen.dart';
+import 'package:extract_app/chatbot_redo.dart';
 import 'dart:io';
 import 'base.dart';
 
@@ -161,7 +162,7 @@ class _UploadOrCameraState extends State<UploadOrCamera> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChatbotScreen(
+                        builder: (context) => ChatbotRedo(
                           initialCategory: widget.category,
                           initialImagePath: null, // No single initial image
                           initialDetections: [], // No single initial detections
