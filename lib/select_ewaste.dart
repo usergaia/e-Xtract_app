@@ -21,7 +21,7 @@ class SelectEwaste extends StatelessWidget {
             SizedBox(height: screenHeight * 0.02),
             Text(
               'Select a device type below to get started with part extraction and recycling instructions.',
-              style: GoogleFonts.robotoCondensed(
+              style: GoogleFonts.montserrat(
                 fontSize: screenHeight * 0.022,
                 fontWeight: FontWeight.w600,
                 color: Colors.white70,

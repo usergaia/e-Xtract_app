@@ -31,16 +31,14 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get the screen dimensions for responsive layout
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
@@ -48,13 +46,15 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       SizedBox(height: screenHeight * 0.04),
                       ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [Colors.greenAccent, Colors.green],
-                        ).createShader(bounds),
+                        shaderCallback:
+                            (bounds) => const LinearGradient(
+                              colors: [Colors.greenAccent, Colors.green],
+                            ).createShader(bounds),
                         child: Text(
                           'e-Xtract',
                           style: GoogleFonts.montserrat(
-                            fontSize: screenHeight * 0.07, // Responsive font size
+                            fontSize:
+                                screenHeight * 0.07, // Responsive font size
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                           ),
@@ -63,8 +63,9 @@ class HomeScreen extends StatelessWidget {
                       SizedBox(height: screenHeight * 0.01),
                       Text(
                         'Identify and extract valuable components in your e-waste instantly.',
-                        style: GoogleFonts.robotoCondensed(
-                          fontSize: screenHeight * 0.022, // Responsive font size
+                        style: GoogleFonts.montserrat(
+                          fontSize:
+                              screenHeight * 0.022, // Responsive font size
                           fontWeight: FontWeight.w600,
                           color: Colors.white70,
                         ),
@@ -103,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.02),
-                      
+
                       // Get Started button
                       _buildButton(
                         context: context,
@@ -111,29 +112,15 @@ class HomeScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const SelectEwaste()),
+                            MaterialPageRoute(
+                              builder: (context) => const SelectEwaste(),
+                            ),
                           );
                         },
                       ),
 
                       SizedBox(height: screenHeight * 0.015),
                       
-                      // Chat with Assistant button
-                      _buildButton(
-                        context: context,
-                        text: 'Chat with Assistant',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ChatbotScreen(
-                              initialCategory: '', // Provide an empty string or default category
-                            )),
-                          );
-                        },
-                        icon: Icons.chat_bubble_outline,
-                      ),
-
-                      SizedBox(height: screenHeight * 0.02),
                     ],
                   ),
                 ),
@@ -147,12 +134,12 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildSlide({
     required BuildContext context,
-    required IconData icon, 
-    required String title, 
-    required String subtitle
+    required IconData icon,
+    required String title,
+    required String subtitle,
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -170,11 +157,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: Icon(
-            icon,
-            size: screenHeight * 0.07,
-            color: Colors.white,
-          ),
+          child: Icon(icon, size: screenHeight * 0.07, color: Colors.white),
         ),
         SizedBox(height: screenHeight * 0.015),
         Text(
@@ -188,7 +171,7 @@ class HomeScreen extends StatelessWidget {
         SizedBox(height: screenHeight * 0.01),
         Text(
           subtitle,
-          style: GoogleFonts.robotoCondensed(
+          style: GoogleFonts.montserrat(
             fontSize: screenHeight * 0.02,
             color: Colors.white70,
           ),
@@ -200,12 +183,12 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildButton({
     required BuildContext context,
-    required String text, 
-    required VoidCallback onTap, 
-    IconData? icon
+    required String text,
+    required VoidCallback onTap,
+    IconData? icon,
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -230,11 +213,7 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(
-                icon,
-                size: screenHeight * 0.026,
-                color: Colors.white,
-              ),
+              Icon(icon, size: screenHeight * 0.026, color: Colors.white),
               SizedBox(width: screenHeight * 0.01),
             ],
             Text(
