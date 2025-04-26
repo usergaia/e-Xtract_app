@@ -38,6 +38,12 @@ class AssistantLogic {
   String? _currentComponent;
   List<String> _remainingComponents = [];
 
+  // Add instance counter at class level
+  final Map<String, int> _instanceCounter = {};
+
+  // Add this field to track unique component instances
+  final List<String> _uniqueComponents = [];
+
   AssistantLogic({
     required this.category,
     required this.detectedComponents,
@@ -50,14 +56,26 @@ class AssistantLogic {
     );
     _instructionsData = json.decode(jsonString);
     
-    // Filter detected components while maintaining order
-    _remainingComponents = _componentOrder
-        .where((component) => detectedComponents
-            .map((c) => c.toLowerCase().replaceAll(' ', '-'))
-            .contains(component))
-        .toList();
+    // Create list of unique components with their instance numbers
+    for (var imageMap in componentImages.values) {
+      for (var entry in imageMap.entries) {
+        String fullKey = entry.key; // e.g. "ram_1", "ram_2"
+        _uniqueComponents.add(fullKey);
+      }
+    }
     
-    _currentComponent = _remainingComponents.isNotEmpty ? _remainingComponents.first : null;
+    // Sort components according to extraction order
+    _uniqueComponents.sort((a, b) {
+      String typeA = a.split('_')[0];
+      String typeB = b.split('_')[0];
+      int aIndex = _componentOrder.indexOf(typeA);
+      int bIndex = _componentOrder.indexOf(typeB);
+      if (aIndex == -1) return 1;
+      if (bIndex == -1) return -1;
+      return aIndex.compareTo(bIndex);
+    });
+
+    _currentComponent = _uniqueComponents.isNotEmpty ? _uniqueComponents.first : null;
     currentNodeId = 'start';
   }
 
@@ -236,46 +254,49 @@ class AssistantLogic {
       final selectedOption = options[index];
       final nextNodeId = selectedOption['next'] as String;
 
-      // Simply navigate to the next node
-      navigateToNode(nextNodeId);
-
-      // If we're at start, store the disposal cause
       if (currentNodeId == 'start') {
+        // Just store the disposal cause and start with first component
         _disposalCause = nextNodeId;
+        if (_currentComponent != null) {
+          // Always start with battery_type for the first component
+          navigateToNode('battery_type');
+        }
+      } else {
+        // Normal navigation within a component's flow
+        navigateToNode(nextNodeId);
       }
     }
   }
 
   void handleComponent(String component) {
-    // If this is the component causing disposal, show its issue flow
+    // Only show issue flow if we're handling the component that matches the disposal cause
     if (_componentToIssueMap[component] == _disposalCause) {
-      navigateToNode(_componentToIssueMap[component]!);
-      return;
-    }
-
-    // Otherwise show default extraction flow
-    switch (component) {
-      case 'battery':
-        navigateToNode('battery_type');
-        break;
-      case 'fan':
-        navigateToNode('extract_fan');
-        break;
-      case 'ram':
-        navigateToNode('extract_ram_clips');
-        break;
-      case 'hard-drive':
-        navigateToNode('hdd_default');
-        break;
-      case 'ssd-nvme':
-        navigateToNode('nvme_flow');
-        break;
-      case 'ssd-sata':
-        navigateToNode('sata_flow');
-        break;
-      case 'wifi-card':
-        navigateToNode('extract_wifi');
-        break;
+      navigateToNode(_disposalCause!);
+    } else {
+      // Show default extraction flow
+      switch (component) {
+        case 'battery':
+          navigateToNode('battery_type');
+          break;
+        case 'fan':
+          navigateToNode('extract_fan');
+          break;
+        case 'ram':
+          navigateToNode('extract_ram_clips');
+          break;
+        case 'hard-drive':
+          navigateToNode('hdd_default');
+          break;
+        case 'ssd-nvme':
+          navigateToNode('nvme_flow');
+          break;
+        case 'ssd-sata':
+          navigateToNode('sata_flow');
+          break;
+        case 'wifi-card':
+          navigateToNode('extract_wifi');
+          break;
+      }
     }
   }
 
@@ -322,19 +343,24 @@ class AssistantLogic {
     final node = getCurrentNode();
     if (node == null) return '';
 
-    String instruction = '';
-    
-    // Show the component being handled unless we're at the start
-    if (currentNodeId != 'start' && _currentComponent != null) {
-      instruction += 'Currently handling: $_currentComponent\n\n';
-    }
-
-    // Add the node's text content
+    // Only return the node's text content
     if (node.containsKey('text')) {
-      instruction += node['text'] as String;
+      return node['text'] as String;
     }
-
-    return instruction;
+    
+    // Don't include "Steps:" header since it's handled in the UI
+    if (node.containsKey('steps')) {
+      final steps = List<Map<String, dynamic>>.from(node['steps']);
+      steps.sort((a, b) => (a['order'] as int? ?? 0).compareTo(b['order'] as int? ?? 0));
+      return steps.map((step) => '• ${step['action']}').join('\n');
+    }
+    
+    if (node.containsKey('instructions')) {
+      final instructions = List<Map<String, dynamic>>.from(node['instructions']);
+      return instructions.map((instruction) => '• ${instruction['step']}').join('\n');
+    }
+    
+    return '';
   }
 
   // Reset to start
@@ -349,53 +375,52 @@ class AssistantLogic {
 
   // Add method to move to next component
   bool moveToNextComponent() {
-    if (_remainingComponents.isEmpty || _currentComponent == null) {
+    if (_uniqueComponents.isEmpty || _currentComponent == null) {
       return false;
     }
     
-    // Don't proceed if we're at the last component
-    if (_remainingComponents.length == 1) {
+    int currentIndex = _uniqueComponents.indexOf(_currentComponent!);
+    if (currentIndex < 0 || currentIndex >= _uniqueComponents.length - 1) {
       return false;
     }
     
-    // Clear previous component's data
     _componentSteps.clear();
     _currentOptions.clear();
-    
-    // Remove current and get next
-    _remainingComponents.remove(_currentComponent);
-    if (_remainingComponents.isNotEmpty) {
-      _currentComponent = _remainingComponents.first;
-      handleComponent(_currentComponent!);
-      return true;
-    }
-    
-    return false;
+    _currentComponent = _uniqueComponents[currentIndex + 1];
+    handleComponent(_currentComponent!.split('_')[0]);
+    return true;
   }
 
   // Update hasMoreComponents to check if there's more than one component left
   bool hasMoreComponents() {
-    return _remainingComponents.length > 1;
+    if (_currentComponent == null) return false;
+    
+    int currentIndex = _uniqueComponents.indexOf(_currentComponent!);
+    // Return true only if there are components after the current one
+    return currentIndex < _uniqueComponents.length - 1;
   }
 
   // Add method to get name of next component
   String? getNextComponentName() {
-    if (_remainingComponents.isEmpty || _remainingComponents.length <= 1) {
-      return null;
+    if (_currentComponent == null) return null;
+    
+    int currentIndex = _uniqueComponents.indexOf(_currentComponent!);
+    // Check if there's a next component
+    if (currentIndex < _uniqueComponents.length - 1) {
+      // Return the base component name without instance number
+      return _uniqueComponents[currentIndex + 1].split('_')[0];
     }
-    return _remainingComponents[1];
+    return null;
   }
 
-  // Update getCurrentComponentImage to handle nested map
+  // Update getCurrentComponentImage to track instances
   String? getCurrentComponentImage() {
     if (_currentComponent == null) return null;
     
-    // Look through all images to find the current component
+    // Look through all images to find exact match for current component
     for (var imageMap in componentImages.values) {
-      for (var entry in imageMap.entries) {
-        if (entry.key.split('_')[0] == _currentComponent) {
-          return entry.value;
-        }
+      if (imageMap.containsKey(_currentComponent)) {
+        return imageMap[_currentComponent];
       }
     }
     return null;

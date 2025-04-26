@@ -38,12 +38,12 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   Future<void> _initializeAssistant() async {
     _assistant = AssistantLogic(
       category: widget.initialCategory,
+      // Don't use toSet() here - keep all instances
       detectedComponents: widget.initialComponentImages.values
           .expand((map) => map.keys)
           .map((key) => key.split('_')[0])
-          .toSet()
           .toList(),
-      componentImages: widget.initialComponentImages,  // Add this
+      componentImages: widget.initialComponentImages,
     );
     await _assistant.initialize();
     setState(() {
@@ -298,7 +298,6 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                         runSpacing: 8,
                         children: widget.initialComponentImages.values
                             .expand((map) => map.keys)
-                            .toSet() // Remove duplicates
                             .map((component) {
                           return Container(
                             padding: const EdgeInsets.symmetric(
@@ -344,31 +343,34 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        'Currently handling: ${_assistant.getCurrentComponent()}',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      if (_assistant.getCurrentComponentImage() != null)
-                        Container(
-                          height: 120,
-                          width: double.infinity,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
+                      // Only show component info if we're past the start node
+                      if (_assistant.currentNodeId != 'start') ...[
+                        Text(
+                          'Currently handling: ${_assistant.getCurrentComponent()}',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            color: Colors.white,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              File(_assistant.getCurrentComponentImage()!),
-                              fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 12),
+                        if (_assistant.getCurrentComponentImage() != null)
+                          Container(
+                            height: 120,
+                            width: double.infinity,
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                File(_assistant.getCurrentComponentImage()!),
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
-                        ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
+                      ],
                       Text(
                         'Steps:',
                         style: GoogleFonts.montserrat(
@@ -423,64 +425,35 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                                 ))
                             .toList(),
                       ),
-                      if (_assistant.isAtEnd()) ...[
+                      if (_assistant.isAtEnd() && _assistant.hasMoreComponents()) ...[
                         const SizedBox(height: 16),
-                        Text(
-                          'Steps:',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 200,
-                          child: ListView(
-                            children: _assistant.getComponentSteps()
-                                .map((step) => Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
-                                      child: Text(
-                                        '• $step',
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
-                        ),
-                        if (_assistant.isAtEnd() && _assistant.hasMoreComponents()) ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _assistant.moveToNextComponent();
-                              });
-                              // Scroll after state update
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                _scrollToBottom();
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF34A853),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _assistant.moveToNextComponent();
+                            });
+                            // Scroll after state update
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToBottom();
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF34A853),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(
-                              'Next Component: ${_assistant.getNextComponentName() ?? ""}',
-                              style: GoogleFonts.montserrat(),
-                              textAlign: TextAlign.center,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
                             ),
                           ),
-                        ],
+                          child: Text(
+                            'Next Component: ${_assistant.getNextComponentName() ?? ""}',
+                            style: GoogleFonts.montserrat(),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ],
                     ],
                   ),
