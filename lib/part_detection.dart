@@ -395,7 +395,7 @@ class _PartDetectionScreenState extends State<PartDetectionScreen>
                     itemBuilder: (context, index) {
                       final det = _finalDetections[index];
                       return Card(
-                        color: Colors.white10,
+                        color: const ui.Color.fromRGBO(255, 255, 255, 0.102),
                         margin: EdgeInsets.only(bottom: screenHeight * 0.004),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

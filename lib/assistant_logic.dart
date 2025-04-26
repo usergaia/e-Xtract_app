@@ -10,6 +10,9 @@ class AssistantLogic {
   String currentNodeId = 'start';
   List<String> _componentQueue = [];
   int _currentComponentIndex = -1;
+  bool _startNodeProcessed = false; // Flag to track if the start node has been processed
+  bool _firstComponentProcessed = false; // Track if we've processed at least one component
+  bool _explanationShown = false; // Track if we've shown the explanation message already
   
   AssistantLogic({
     required this.category,
@@ -76,14 +79,44 @@ class AssistantLogic {
     if (_instructionData.isEmpty || !_nodeExists(currentNodeId)) {
       return 'No instructions available.';
     }
-    
+
+    // If the current node is "start" and it has already been processed, skip it
+    if (currentNodeId == 'start' && _startNodeProcessed) {
+      moveToNextComponent(); // Automatically move to the next component
+      return getCurrentInstruction(); // Fetch the next instruction
+    }
+
+    // Mark the start node as processed
+    if (currentNodeId == 'start') {
+      _startNodeProcessed = true;
+    }
+
     final currentNode = _getNode(currentNodeId);
-    
+
     // Check if the node has text
     if (currentNode.containsKey('text')) {
-      return currentNode['text'];
+      String originalText = currentNode['text'];
+      
+      // For component issue nodes, modify the text if it's not the first time seeing it
+      if ((currentNodeId.contains('_issue') || currentNodeId.contains('_problem')) && _explanationShown) {
+        // Remove the "This may be caused by..." prefix from the message
+        if (originalText.contains('This may be caused by')) {
+          // Extract just the question part
+          List<String> parts = originalText.split('?');
+          if (parts.length > 1) {
+            return "Would you like to extract this part?"; // Just show the question
+          }
+        }
+      }
+      
+      // If this is an explanation node, mark that we've shown an explanation
+      if (currentNodeId.contains('_issue') || currentNodeId.contains('_problem')) {
+        _explanationShown = true;
+      }
+      
+      return originalText;
     }
-    
+
     // Check if the node has steps
     if (currentNode.containsKey('steps')) {
       List<Map<String, dynamic>> steps = List<Map<String, dynamic>>.from(currentNode['steps']);
@@ -91,13 +124,13 @@ class AssistantLogic {
       
       return steps.map((step) => '${step['order']}. ${step['action']}').join('\n\n');
     }
-    
+
     // Check if the node has instructions
     if (currentNode.containsKey('instructions')) {
       List<Map<String, dynamic>> instructions = List<Map<String, dynamic>>.from(currentNode['instructions']);
       return instructions.map((instruction) => '• ${instruction['step']}').join('\n\n');
     }
-    
+
     return 'Ready to process component.';
   }
   
@@ -167,6 +200,11 @@ class AssistantLogic {
     if (index >= 0 && index < filteredOptions.length) {
       final nextNodeId = filteredOptions[index]['next'];
       currentNodeId = nextNodeId;
+      
+      // Mark that we've processed at least one component selection
+      if (currentNodeId != 'start') {
+        _firstComponentProcessed = true;
+      }
     }
   }
   
@@ -188,7 +226,53 @@ class AssistantLogic {
     if (_currentComponentIndex < 0 || _currentComponentIndex >= _componentQueue.length - 1) return;
     
     _currentComponentIndex++;
-    currentNodeId = 'start';  // Reset to start node for the next component
+    
+    // Only go to the start node for the first component
+    // For subsequent components, try to find component-specific nodes
+    if (!_firstComponentProcessed) {
+      currentNodeId = 'start';
+    } else {
+      // Find the appropriate entry node for this component
+      String componentName = _componentQueue[_currentComponentIndex].toLowerCase();
+      
+      // Try to find a node that corresponds to this component type
+      String entryNodeId = _findEntryNodeForComponent(componentName);
+      if (entryNodeId.isNotEmpty) {
+        currentNodeId = entryNodeId;
+      } else {
+        // If no specific node found, use a generic approach
+        // This could be improved with a more sophisticated component -> node mapping
+        if (componentName.contains('battery')) {
+          currentNodeId = 'battery_issue';
+        } else if (componentName.contains('camera')) {
+          currentNodeId = 'camera_issue';
+        } else {
+          // No direct mapping found, use start node as fallback
+          currentNodeId = 'start';
+        }
+      }
+    }
+  }
+  
+  // Helper method to find an appropriate entry node for a component
+  String _findEntryNodeForComponent(String componentName) {
+    if (!_instructionData.containsKey('nodes')) return '';
+    
+    // Component name patterns mapped to node IDs
+    Map<String, String> componentToNodeMap = {
+      'battery': 'battery_issue',
+      'camera': 'camera_issue'
+      // Add more mappings as needed for other components
+    };
+    
+    // Check for direct matches first
+    for (var entry in componentToNodeMap.entries) {
+      if (componentName.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    
+    return '';
   }
   
   String? getCurrentComponent() {
