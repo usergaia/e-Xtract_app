@@ -48,6 +48,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   
   // Image handling
   Map<String, String> _componentImagePaths = {}; // Quick lookup for component images
+  Map<String, String> _originalComponentNames = {}; // Maps unique keys back to component names
   Map<String, String>? _componentLabelMapping; // Maps UI labels to component internal names
 
   // Lifecycle method called when widget is first created
@@ -60,11 +61,23 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
 
   // Creates a flattened map for quick component image lookup
   void _initializeComponentImagePaths() {
+    int imageIndex = 0;  // Add an image counter for uniqueness
+    
     // Loop through the nested structure of images passed to this widget
     for (var entry in widget.initialComponentImages.entries) {
+      String imagePath = entry.key;  // Get the original image path
+      imageIndex++;  // Increment counter for each image
+      
       for (var component in entry.value.entries) {
-        // Store the component image with original key to preserve uniqueness
-        _componentImagePaths[component.key.toLowerCase()] = component.value;
+        // Create a unique key that combines component name with image source
+        // Format: componentname_img1, componentname_img2, etc.
+        String uniqueKey = "${component.key.toLowerCase()}_img$imageIndex";
+        
+        // Store the component image with unique key to prevent overwriting
+        _componentImagePaths[uniqueKey] = component.value;
+        
+        // Also store original component name for searching
+        _originalComponentNames[uniqueKey] = component.key.toLowerCase();
       }
     }
     
@@ -75,10 +88,15 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   List<String> _getCurrentComponentImagePaths() {
     if (_currentComponent == null) return [];
     
-    // Find all images where the key starts with the current component name
+    // Find all images where the original component name matches current component
     List<String> paths = [];
     for (var entry in _componentImagePaths.entries) {
-      if (entry.key.toLowerCase().startsWith(_currentComponent!.toLowerCase())) {
+      String uniqueKey = entry.key;
+      String? originalName = _originalComponentNames[uniqueKey];
+      
+      // If this component matches our current component (by name prefix)
+      if (originalName != null && 
+          originalName.toLowerCase().startsWith(_currentComponent!.toLowerCase())) {
         paths.add(entry.value);
       }
     }
