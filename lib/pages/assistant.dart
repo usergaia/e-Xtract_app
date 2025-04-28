@@ -278,7 +278,13 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
           // Top collapsible summary section (green header)
           AnimatedContainer(
             duration: const Duration(milliseconds: 300), // Animation duration when expanding/collapsing
-            color: const Color(0xFF34A853), // Green color
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,7 +696,11 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                                 height: 28,
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Color(0xFF34A853),
+                                  gradient: LinearGradient(
+                                    colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                 ),
                                 child: Center(
                                   child: Text(
@@ -745,18 +755,30 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                           child: ElevatedButton(
                             onPressed: () => _navigateToNode(option.next), // Navigate on press
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF34A853),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: Text(
-                              option.label,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Text(
+                                option.label,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
@@ -778,18 +800,30 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                 child: ElevatedButton(
                   onPressed: () => _navigateToNode(_currentNode!.next!),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF34A853),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    'Next',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(
+                      'Next',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
