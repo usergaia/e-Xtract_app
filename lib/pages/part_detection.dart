@@ -673,67 +673,74 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
               
               // Continue button
               GestureDetector(
-                // Detects taps and other gestures
-                onTap: () async {
-                  // Function called when button is tapped
-                  if (_processingStatus.contains(true)) return; // Don't proceed if still processing
-                  
-                  // Capture all processed images that haven't been captured yet
-                  for (int i = 0; i < widget.selectedImages.length; i++) {
-                    if (_processedImagePaths[i].isEmpty && _allDetections[i].isNotEmpty) {
-                      await _captureProcessedImage(i);
-                    }
-                  }
-                  
-                  // Prepare data for chatbot
-                  List<String> allDetectedComponents = []; // All component names
-                  Map<String, Map<String, String>> allComponentImages = {}; // Component images by image
-                  
-                  for (int i = 0; i < widget.selectedImages.length; i++) {
-                    if (_allDetections[i].isNotEmpty) {
-                      // Collect all detected component names from this image
-                      allDetectedComponents.addAll(
-                        _allDetections[i].map((det) => det.className)
-                      );
-                      
-                      // Get the processed image path
-                      final String imagePath = _processedImagePaths[i].isEmpty
-                          ? widget.selectedImages[i].path // Use original if not processed
-                          : _processedImagePaths[i]; // Use processed otherwise
-                          
-                      // Store this image's cropped components
-                      allComponentImages[imagePath] = _allCroppedComponents[i];
-                    }
-                  }
-                  
-                  // Navigate to ChatbotRedo page with detection results
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ChatbotRedo(
-                        // Pass data to ChatbotRedo
-                        initialCategory: widget.category, // Device category
-                        initialImagePath: widget.selectedImages.isNotEmpty 
-                            ? widget.selectedImages[0].path // First image path
-                            : null,
-                        initialDetections: allDetectedComponents, // All detected components
-                        initialComponentImages: allComponentImages, // All component images
-                        initialBatch: List<int>.generate(
-                          widget.selectedImages.length, 
-                          (index) => index // List of indices [0,1,2,...]
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                // Only allow tap if not processing and we have detections
+                onTap: (_processingStatus.contains(true) || 
+                        _allDetections[_currentImageIndex].isEmpty) 
+                    ? null 
+                    : () async {
+                        // Don't proceed if still processing
+                        if (_processingStatus.contains(true)) return;
+                        
+                        // Capture all processed images that haven't been captured yet
+                        for (int i = 0; i < widget.selectedImages.length; i++) {
+                          if (_processedImagePaths[i].isEmpty && _allDetections[i].isNotEmpty) {
+                            await _captureProcessedImage(i);
+                          }
+                        }
+                        
+                        // Prepare data for chatbot
+                        List<String> allDetectedComponents = []; // All component names
+                        Map<String, Map<String, String>> allComponentImages = {}; // Component images by image
+                        
+                        for (int i = 0; i < widget.selectedImages.length; i++) {
+                          if (_allDetections[i].isNotEmpty) {
+                            // Collect all detected component names from this image
+                            allDetectedComponents.addAll(
+                              _allDetections[i].map((det) => det.className)
+                            );
+                            
+                            // Get the processed image path
+                            final String imagePath = _processedImagePaths[i].isEmpty
+                                ? widget.selectedImages[i].path // Use original if not processed
+                                : _processedImagePaths[i]; // Use processed otherwise
+                                
+                            // Store this image's cropped components
+                            allComponentImages[imagePath] = _allCroppedComponents[i];
+                          }
+                        }
+                        
+                        // Navigate to ChatbotRedo page with detection results
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ChatbotRedo(
+                              // Pass data to ChatbotRedo
+                              initialCategory: widget.category, // Device category
+                              initialImagePath: widget.selectedImages.isNotEmpty 
+                                  ? widget.selectedImages[0].path // First image path
+                                  : null,
+                              initialDetections: allDetectedComponents, // All detected components
+                              initialComponentImages: allComponentImages, // All component images
+                              initialBatch: List<int>.generate(
+                                widget.selectedImages.length, 
+                                (index) => index // List of indices [0,1,2,...]
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                 child: Container(
                   // Continue button styling
                   width: double.infinity, // Full width
                   padding: EdgeInsets.symmetric(vertical: screenHeight * 0.018), // Vertical padding
                   margin: const EdgeInsets.only(top: 16), // Margin at top
                   decoration: BoxDecoration(
-                    // Button styling
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF34A853), Color(0xFF0F9D58)], // Green gradient
+                    // Button styling with conditional colors
+                    gradient: LinearGradient(
+                      colors: (_processingStatus.contains(true) || 
+                              (_currentImageIndex < _allDetections.length && 
+                               _allDetections[_currentImageIndex].isEmpty))
+                          ? [Colors.grey.shade700, Colors.grey.shade600] // Grayed out when disabled
+                          : [Color(0xFF34A853), Color(0xFF0F9D58)],      // Green when enabled
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -753,7 +760,11 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                       style: GoogleFonts.montserrat(
                         fontSize: screenHeight * 0.02,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: (_processingStatus.contains(true) || 
+                               (_currentImageIndex < _allDetections.length && 
+                                _allDetections[_currentImageIndex].isEmpty))
+                            ? Colors.grey.shade300
+                            : Colors.white,
                       ),
                     ),
                   ),
@@ -865,12 +876,63 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
     if (_currentImageIndex >= _allDetections.length || 
         _allDetections[_currentImageIndex].isEmpty) {
       return Center(
-        child: Text(
-          'No components detected',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            color: Colors.white70,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'No components detected.',
+              style: GoogleFonts.robotoCondensed(
+                fontSize: MediaQuery.of(context).size.height * 0.022,
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.018),
+            Text(
+              'Please try again with a clearer image or different angle.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.robotoCondensed(
+                fontSize: MediaQuery.of(context).size.height * 0.018,
+                color: Colors.white60,
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.024),
+            GestureDetector(
+              onTap: () {
+                // Navigate back to UploadOrCamera screen
+                Navigator.pop(context);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.1,
+                  vertical: MediaQuery.of(context).size.height * 0.014,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.redAccent, Colors.red],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(0, 3),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Try Another Image',
+                  style: GoogleFonts.montserrat(
+                    fontSize: MediaQuery.of(context).size.height * 0.018,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
