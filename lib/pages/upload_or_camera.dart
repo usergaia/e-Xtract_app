@@ -9,11 +9,13 @@ import 'package:google_fonts/google_fonts.dart'; // Added Google Fonts for bette
 // Since the UI needs to update dynamically based on the contents of _selectedImages, a StatefulWidget is required.
 class UploadPage extends StatefulWidget {
   final String category; // Declares a final variable to store the category passed from previous screen (category.dart)
+  final List<File>? existingImages; // Add this parameter
 
   const UploadPage({ // Constructor for UploadPage that requires a category
     Key? key, // Optional key to identify the widget uniquely. Key helps Flutter uniquely identify widgets during rebuilds(e.g., during hot reload ).
               // It allows Flutter to maintain state when the widget is moved or rebuilt.
     required this.category, // Requires a category to be passed when creating UploadPage
+    this.existingImages, // Optional parameter for existing images
   }) : super(key: key); // Passes the key to the superclass constructor
 
   @override 
@@ -24,8 +26,15 @@ class UploadPage extends StatefulWidget {
 
 // The mutable state class for UploadPage
 class _UploadPageState extends State<UploadPage> {
-  List<File> _selectedImages = []; // A list to store all selected image files
-  final ImagePicker _picker = ImagePicker(); // Creates an instance of ImagePicker to select images
+  late List<File> _selectedImages; // Change to late initialization
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with existing images or empty list
+    _selectedImages = widget.existingImages?.toList() ?? [];
+  }
 
   // Asynchronous method to pick a single image from the camera
   Future<void> _pickImageFromCamera() async { // This is a asynchronous, allowing you to perform tasks that take time without blocking the main thread.

@@ -681,13 +681,6 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                         // Don't proceed if still processing
                         if (_processingStatus.contains(true)) return;
                         
-                        // Capture all processed images that haven't been captured yet
-                        for (int i = 0; i < widget.selectedImages.length; i++) {
-                          if (_processedImagePaths[i].isEmpty && _allDetections[i].isNotEmpty) {
-                            await _captureProcessedImage(i);
-                          }
-                        }
-                        
                         // Prepare data for chatbot
                         List<String> allDetectedComponents = []; // All component names
                         Map<String, Map<String, String>> allComponentImages = {}; // Component images by image
@@ -699,10 +692,16 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                               _allDetections[i].map((det) => det.className)
                             );
                             
-                            // Get the processed image path
-                            final String imagePath = _processedImagePaths[i].isEmpty
-                                ? widget.selectedImages[i].path // Use original if not processed
-                                : _processedImagePaths[i]; // Use processed otherwise
+                            // IMPORTANT CHANGE: Always use original images, not processed ones
+                            final String imagePath = widget.selectedImages[i].path;
+                                
+                            // Generate component crops on demand if needed
+                            if (_allCroppedComponents[i].isEmpty && _allDetections[i].isNotEmpty) {
+                              _allCroppedComponents[i] = await _cropAllDetectedComponents(
+                                widget.selectedImages[i].path,
+                                _allDetections[i],
+                              );
+                            }
                                 
                             // Store this image's cropped components
                             allComponentImages[imagePath] = _allCroppedComponents[i];
@@ -714,15 +713,15 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                           MaterialPageRoute(
                             builder: (context) => ChatbotRedo(
                               // Pass data to ChatbotRedo
-                              initialCategory: widget.category, // Device category
+                              initialCategory: widget.category,
                               initialImagePath: widget.selectedImages.isNotEmpty 
-                                  ? widget.selectedImages[0].path // First image path
+                                  ? widget.selectedImages[0].path
                                   : null,
-                              initialDetections: allDetectedComponents, // All detected components
-                              initialComponentImages: allComponentImages, // All component images
+                              initialDetections: allDetectedComponents,
+                              initialComponentImages: allComponentImages,
                               initialBatch: List<int>.generate(
                                 widget.selectedImages.length, 
-                                (index) => index // List of indices [0,1,2,...]
+                                (index) => index
                               ),
                             ),
                           ),

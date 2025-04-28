@@ -445,6 +445,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                                   child: Image.file(
                                     File(imagePath),
                                     height: 120,
+                                    width: 160, // Set a fixed width to maintain aspect ratio
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -890,11 +891,21 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
+                          // Extract all component image paths into a list of File objects
+                          List<File> existingImages = [];
+                          
+                          // Add source/original images
+                          for (var imagePath in widget.initialComponentImages.keys) {
+                            existingImages.add(File(imagePath));
+                          }
+                          
+                          // Navigate to UploadPage with existing images
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => UploadPage(
                                 category: widget.initialCategory,
+                                existingImages: existingImages,
                               ),
                             ),
                           );
