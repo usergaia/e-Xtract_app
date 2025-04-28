@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 import '/pages/upload_or_camera.dart';
 import '/pages/base.dart'; 
 
@@ -16,14 +17,15 @@ class Category extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center, // Center content horizontally
             children: [
-            const Text(
+            Text(
               // Instructional text
               'Select a device type below to get started with part extraction and recycling instructions.',
               textAlign: TextAlign.center, // Center the text
-              style: TextStyle(
-              fontSize: 16, // Font size
-              color: Colors.white70, // Light white text color
-              height: 1.5, // Line spacing
+              style: GoogleFonts.montserrat(
+                fontSize: 18,
+                fontWeight: FontWeight.w600, // Font size
+                color: Colors.white70, // Light white text color
+                height: 1.5, // Line spacing
               ),
             ),
             const SizedBox(height: 30), // Add vertical space
@@ -63,43 +65,52 @@ class Category extends StatelessWidget {
             const SizedBox(height: 16), // Space before next button
 
             // A full-width button for Landline Phone option
-            SizedBox(
-              width: double.infinity, // Make button take full width
-              height: 80, // Button height
+            Container(
+              height: 90, // Shorter height for rectangular shape
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => UploadPage(category: 'Landline'),
-                ),
-                );
-              }, // Action when button is pressed
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4CD97B), // Green background color
-                shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20), // Rounded corners
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Center items inside button
-                children: const [
-                Icon(
-                  Icons.call, // Icon for landline
-                  color: Colors.white, // Icon color
-                  size: 28, // Icon size
-                ),
-                SizedBox(width: 12), // Space between icon and text
-                Text(
-                  'Landline Phone', // Button label
-                  style: TextStyle(
-                  fontSize: 18, // Text size
-                  fontWeight: FontWeight.bold, // Bold text
-                  color: Colors.white, // White text color
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UploadPage(category: 'Landline'),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
+                  padding: EdgeInsets.zero,
                 ),
-                ],
-              ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.call,
+                      color: Colors.white,
+                      size: 50, // Smaller icon for rectangular shape
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Landline Phone',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -116,7 +127,11 @@ class Category extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF4CD97B), // Green background for card
+        gradient: const LinearGradient(
+          colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20), // Rounded corners
       ),
       child: InkWell(
@@ -136,14 +151,14 @@ class Category extends StatelessWidget {
             Icon(
               icon, // Icon passed as parameter
               color: Colors.white, // White icon color
-              size: 40, // Icon size
+              size: 70, // Icon size
             ),
             const SizedBox(height: 8), // Space between icon and text
             Text(
               label, // Label passed as parameter
-              style: const TextStyle(
+              style: GoogleFonts.montserrat(
                 color: Colors.white, // White text color
-                fontSize: 16, // Font size
+                fontSize: 20, // Font size
                 fontWeight: FontWeight.bold, // Bold text
               ),
             ),
