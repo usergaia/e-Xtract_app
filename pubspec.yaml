@@ -25,6 +25,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/img_assistance/cpu_cooler_socket.png
     - assets/desktop_instructions.json
     - assets/laptop_instructions.json
     - assets/landline_instructions.json

@@ -56,9 +56,9 @@
     {
       "id": "extract_hdd",
       "steps": [
-        { "order": 1, "action": "Disconnect power and SATA cables from the HDD." },
-        { "order": 2, "action": "Unscrew or unclip the HDD mounting brackets." },
-        { "order": 3, "action": "Slide the HDD out of its bay." }
+        { "order": 1, "action": "Gently disconnect the two cables from the hard drive: the wide flat data cable and the small power cable with colored wires." },
+        { "order": 2, "action": "Remove the screws or press the plastic clips that are holding the hard drive in place." },
+        { "order": 3, "action": "Carefully slide the hard drive out of its bay, supporting it from underneath." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -68,9 +68,9 @@
     {
       "id": "extract_ssd",
       "steps": [
-        { "order": 1, "action": "Disconnect power and data cables from the SSD." },
-        { "order": 2, "action": "Remove screws or brackets holding the SSD." },
-        { "order": 3, "action": "Slide or lift the SSD out carefully." }
+        { "order": 1, "action": "Locate the small screw securing the NVMe SSD to the M.2 slot. It is usually at the end" },
+        { "order": 2, "action": "Remove the screw securing the disk in place. Once the screw has been removed, the drive will lift itself." },
+        { "order": 3, "action": "Gently pull the SSD away from the connector side (where it’s plugged in)." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -108,8 +108,8 @@
     {
       "id": "extract_cmos",
       "steps": [
-        { "order": 1, "action": "Locate the coin-cell battery on the motherboard." },
-        { "order": 2, "action": "Use a non-metal tool to gently pop it out of its socket." }
+        { "order": 1, "action": "Make sure you're not using anything metal. Use a plastic tool or your fingernail to gently push the battery out of its holder." },
+        { "order": 2, "action": "The battery should pop out with a small click. Be careful not to force it." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -127,7 +127,11 @@
     {
       "id": "extract_cooler",
       "steps": [
-        { "order": 1, "action": "Unscrew the cooler from the CPU socket." },
+        { 
+          "order": 1, 
+          "action": "There is a cable connected to the cooler unplug it from the motherboard. Look for the label CPU_PORT/CPU_FAN" ,
+          "image": "assets/img_assistance/cpu_cooler_socket.png"
+        },
         { "order": 2, "action": "Unplug the fan connector from the motherboard." },
         { "order": 3, "action": "Gently lift the cooler off the CPU." }
       ],

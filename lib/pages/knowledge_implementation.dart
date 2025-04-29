@@ -196,14 +196,20 @@ class Option {
 class Step {
   final int order; // The sequence number of this step
   final String action; // The instruction text for this step
+  final String? image;  // Add this property for images
   
-  Step({required this.order, required this.action});
+  Step({
+    required this.order, 
+    required this.action,
+    this.image,  // Add to constructor
+  });
   
   // Convert JSON data to a Step object
   factory Step.fromJson(Map<String, dynamic> json) {
     return Step(
       order: json['order'],
       action: json['action'],
+      image: json['image'],  // Parse image from JSON
     );
   }
 }

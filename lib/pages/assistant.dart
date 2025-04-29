@@ -737,49 +737,76 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
               // Step-by-step instructions (if this node has steps)
               if (_currentNode!.isStepNode) ...[
                 ListView.builder(
-                  shrinkWrap: true, // Important for nested scrolling
-                  physics: NeverScrollableScrollPhysics(), // Disable scrolling of inner list
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
                   itemCount: _currentNode!.steps.length,
                   itemBuilder: (context, index) {
                     final step = _currentNode!.steps[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Row(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Step number circle
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Step number circle
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 12),
+                              // Step instruction text
+                              Expanded(
+                                child: Text(
+                                  step.action,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    color: Colors.grey[800],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Add image if available
+                          if (step.image != null && step.image!.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            GestureDetector(
+                              onTap: () => _showImageOverlay(context, step.image!),
+                              child: Container(
+                                height: 150,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    step.image!,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Step instruction text
-                          Expanded(
-                            child: Text(
-                              step.action,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ),
+                          ],
                         ],
                       ),
                     );
