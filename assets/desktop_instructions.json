@@ -1,4 +1,33 @@
 {
+  "component_labels": {
+    "Graphics card": "gpu",
+    "GPU": "gpu",
+    "Cooling": "cooler",
+    "fan": "cooler",
+    "HDD": "hdd",
+    "SSD": "ssd",
+    "Power supply": "psu",
+    "PSU": "psu",
+    "Motherboard": "mboard",
+    "RAM": "ram",
+    "Memory": "ram",
+    "CPU": "cpu",
+    "BIOS": "cmos",
+    "CMOS": "cmos",
+    "Case": "case"
+  },
+
+  "issue_component_mapping": {
+    "Storage problems (HDD/SSD)": ["hdd", "ssd"],
+    "Case or physical damage": ["case"],
+    "BIOS errors or clock issues": ["cmos"],
+    "Cooling or fan issues": ["cooler", "fan"],
+    "CPU malfunction": ["cpu"],
+    "Graphics card (GPU) problems": ["gpu"],
+    "Motherboard problems": ["mboard"],
+    "Power supply (PSU) failure": ["psu"],
+    "RAM (Memory) issues": ["ram"]
+  },
   "nodes": [
     {
       "id": "start",
@@ -253,23 +282,6 @@
       "id": "end",
       "text": "All selected components have been processed."
     }
-  ],
+  ]
 
-  "component_labels": {
-    "Graphics card": "gpu",
-    "GPU": "gpu",
-    "Cooling": "cooler",
-    "fan": "cooler",
-    "HDD": "hdd",
-    "SSD": "ssd",
-    "Power supply": "psu",
-    "PSU": "psu",
-    "Motherboard": "mboard",
-    "RAM": "ram",
-    "Memory": "ram",
-    "CPU": "cpu",
-    "BIOS": "cmos",
-    "CMOS": "cmos",
-    "Case": "case"
-  }
 }
