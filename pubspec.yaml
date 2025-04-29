@@ -25,7 +25,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/guides/open_phone.png
+
+    # Guide images
+    - assets/guides/open_phone.png #phone 
     - assets/guides/dark_phone.png
     - assets/guides/light_phone.png
     - assets/guides/blur_phone.png
@@ -33,7 +35,7 @@ flutter:
     - assets/guides/mul_phone1.png
     - assets/guides/mul_phone2.png
     - assets/guides/mul_phone3.png
-    - assets/guides/open_laptop.png
+    - assets/guides/open_laptop.png #laptop
     - assets/guides/dark_laptop.png
     - assets/guides/light_laptop.png
     - assets/guides/blur_laptop.png
@@ -41,7 +43,7 @@ flutter:
     - assets/guides/mul_laptop1.png
     - assets/guides/mul_laptop2.png
     - assets/guides/mul_laptop3.png
-    - assets/guides/open_desktop.png
+    - assets/guides/open_desktop.png #desktop
     - assets/guides/dark_desktop.png
     - assets/guides/light_desktop.png
     - assets/guides/blur_desktop.png
@@ -49,28 +51,32 @@ flutter:
     - assets/guides/mul_desktop1.png
     - assets/guides/mul_desktop2.png
     - assets/guides/mul_desktop3.png
-    - assets/guides/open_router.png
+    - assets/guides/open_router.png #router
     - assets/guides/light_router.png
     - assets/guides/dark_router.png
     - assets/guides/blur_router.png
     - assets/guides/unblur_router.png
-    - assets/guides/open_landline.png
+    - assets/guides/open_landline.png #landline
     - assets/guides/light_landline.png
     - assets/guides/dark_landline.png
     - assets/guides/blur_landline.png
     - assets/guides/unblur_landline.png
-    - assets/guides/add_img.png
-    - assets/guides/default.png
+    - assets/guides/add_img.png #extra
+    - assets/guides/default.png 
+
+    # Knowledge-base
     - assets/desktop_instructions.json
     - assets/laptop_instructions.json
     - assets/landline_instructions.json
     - assets/router_instructions.json
 
+    # TFLite models 
     - assets/models/laptop/best_laptop_float16.tflite
     - assets/models/computer/best_computer_float16.tflite
     - assets/models/smartphone/best_phone_float16.tflite
     - assets/models/telecom/best_router-1_float16.tflite
 
+    # Model labels
     - assets/models/laptop/labels.txt
     - assets/models/computer/labels.txt
     - assets/models/smartphone/labels.txt
