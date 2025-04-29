@@ -26,6 +26,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/guides/open_phone.jpg
+    - assets/guides/dark_phone.png
+    - assets/guides/light_phone.png
+    - assets/guides/blur_phone.png
+    - assets/guides/unblur_phone.png
+    - assets/guides/mul_phone1.png
+    - assets/guides/mul_phone2.png
+    - assets/guides/mul_phone3.png
     - assets/guides/open_laptop.jpg
     - assets/guides/open_desktop.png
     - assets/guides/dark_desktop.jpeg

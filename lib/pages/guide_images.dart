@@ -11,29 +11,28 @@ class DeviceGuideImages {
         iconData: Icons.ad_units,
       ),
       GuideImage(
-        assetPath: 'assets/guides/add_img.png',
+        assetPath: 'assets/guides/dark_phone.png',
         additionalImages: [
-          'assets/guides/add_img.png',
+          'assets/guides/light_phone.png',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
         isCollage: true,
       ),
       GuideImage(
-        assetPath: 'assets/guides/add_img.png',
+        assetPath: 'assets/guides/blur_phone.png',
         additionalImages: [
-          'assets/guides/test2.jpg',
-          'assets/guides/test3.jpg',
+          'assets/guides/unblur_phone.png',
         ],
         description: 'Ensure the photo is clear and steady',
         isCollage: true,
         iconData: Icons.center_focus_strong,
       ),
       GuideImage(
-        assetPath: 'assets/guides/add_img.png',
+        assetPath: 'assets/guides/mul_phone1.png',
         additionalImages: [
-          'assets/guides/test2.jpg',
-          'assets/guides/test3.jpg',
+          'assets/guides/mul_phone2.png',
+          'assets/guides/mul_phone3.png',
         ],
         description: 'If necessary, capture multiple angles (top, side, and close-up)',
         isCollage: true,
