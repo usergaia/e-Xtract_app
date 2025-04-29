@@ -2,13 +2,38 @@
   "nodes": [
     {
       "id": "start",
-      "text": "What is the cause of disposal?",
+      "text": "Would you like to indicate the reason/s you're disposing of the laptop, or would you like to head straight to extraction?",
+      "options": [
+        { "label": "Disposal Cause", "next": "issue" },
+        { "label": "Start Component Extraction", "next": "component_extraction"}
+      ]
+    },
+    {
+      "id": "issue",
+      "text": "What issue made you decide to dispose of the laptop?",
       "options": [
         { "label": "Laptop is not powering on", "next": "battery_issue" },
-        { "label": "Overheating", "next": "fan_issue" },
+        { "label": "Laptop is overheating", "next": "fan_issue" },
         { "label": "Memory issue / RAM failure", "next": "ram_issue" },
         { "label": "Storage issue / Drive failure", "next": "storage_issue" },
-        { "label": "Other / Wi-Fi & misc.", "next": "other_issue" }
+        { "label": "Connectivity issue (Wi-Fi)", "next": "other_issue" },
+        { "label": "Back", "next": "start"},
+        { "label": "End", "next": "end"}
+      ]
+    },
+    {
+      "id": "component_extraction",
+      "text": "What part would you like to extract?",
+      "options": [
+        { "label": "Battery", "next": "battery_type" },
+        { "label": "Fan/s", "next": "extract_fan" },
+        { "label": "RAM/s", "next": "ram_type" },
+        { "label": "SSD (2.5 SATA)", "next": "sata_flow" },
+        { "label": "SSD (NVMe M.2)", "next": "nvme_flow" },
+        { "label": "Hard Drive (HDD)", "next": "hdd_flow" },
+        { "label": "Wi-Fi Card", "next": "extract_wifi"},
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
       ]
     },
     {
@@ -16,7 +41,8 @@
       "text": "A non-powering laptop may be caused by an issue with the battery. Would you still like to extract this part?",
       "options": [
         { "label": "Yes", "next": "battery_type" },
-        { "label": "No", "next": "dispose_battery" }
+        { "label": "No", "next": "dispose_battery" },
+        { "label": "Return", "next": "issue" }
       ]
     },
     {
@@ -25,7 +51,7 @@
       "options": [
         { "label": "Screw-mounted (internal)", "next": "extract_battery_screwed" },
         { "label": "Tool-less removable (clip latch)", "next": "extract_battery_easy" },
-        { "label": "Other / Uncertain", "next": "extract_battery_generic" }
+        { "label": "Other / Uncertain", "next": "extract_battery_generic"}
       ]
     },
     {
@@ -35,7 +61,10 @@
         { "order": 2, "action": "Carefully unplug the battery cable from the motherboard." },
         { "order": 3, "action": "Lift the battery straight out of its bay." }
       ],
-      "next_component": "fan"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "extract_battery_easy",
@@ -43,12 +72,20 @@
         { "order": 1, "action": "Slide the latch(es) on the bottom of the laptop to the unlocked position." },
         { "order": 2, "action": "Grip the exposed battery edge and pull it out of its compartment." }
       ],
-      "next_component": "fan"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "extract_battery_generic",
-      "text": "If the battery type is different (e.g., proprietary pack), consult the device's service manual or look for visible release mechanisms before attempting removal.",
-      "next_component": "fan"
+      "steps": [
+        { "order": 1, "action": "If the battery type is different (e.g., proprietary pack), consult the device's service manual or look for visible release mechanisms before attempting removal."}
+      ],
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "dispose_battery",
@@ -57,14 +94,18 @@
         { "step": "Bring to a designated hazardous-waste or electronics recycling drop-off." },
         { "step": "⚠️ WARNING: Never dispose of lithium-ion batteries in regular trash bins!" }
       ],
-      "next_component": "fan"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "fan_issue",
       "text": "Overheating may be caused by a cooling/fan issue. Would you still like to extract this part?",
       "options": [
         { "label": "Yes", "next": "extract_fan" },
-        { "label": "No", "next": "dispose_fan" }
+        { "label": "No", "next": "dispose_fan" },
+        { "label": "Return", "next": "issue" }
       ]
     },
     {
@@ -75,21 +116,28 @@
         { "order": 3, "action": "Unplug the fan's power cable from the motherboard." },
         { "order": 4, "action": "Lift out the fan and heatsink assembly." }
       ],
-      "next_component": "ram"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "dispose_fan",
       "instructions": [
         { "step": "Separate metal and plastic parts; take to a certified e-waste recycler." }
       ],
-      "next_component": "ram"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "ram_issue",
       "text": "Memory issues may be caused by a RAM failure. Would you still like to extract the RAM?",
       "options": [
         { "label": "Yes", "next": "ram_type" },
-        { "label": "No", "next": "dispose_ram" }
+        { "label": "No", "next": "dispose_ram" },
+        { "label": "Return", "next": "issue" }
       ]
     },
     {
@@ -115,7 +163,10 @@
         { "order": 1, "action": "Push side clips outward; the RAM pops up at 45°." },
         { "order": 2, "action": "Pull the module straight out of its slot." }
       ],
-      "next_component": "hard-drive"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "ram_soldered",
@@ -125,7 +176,10 @@
         { "step": "Risk of motherboard damage is high without proper tools and experience" },
         { "step": "Recommend consulting a professional repair service" }
       ],
-      "next_component": "hard-drive"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "dispose_ram",
@@ -133,14 +187,18 @@
         { "step": "Ensure RAM is free of sensitive data." },
         { "step": "Take to an electronics recycling facility for proper disposal." }
       ],
-      "next_component": "hard-drive"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "storage_issue",
       "text": "Storage issues detected. Would you like to extract storage devices?",
       "options": [
         { "label": "Yes", "next": "storage_type" },
-        { "label": "No", "next": "dispose_storage" }
+        { "label": "No", "next": "dispose_storage" },
+        { "label": "Return", "next": "issue" }
       ]
     },
     {
@@ -167,7 +225,10 @@
         { "order": 1, "action": "Flip up the locking flap on the cable connector to release it." },
         { "order": 2, "action": "Remove mounting screws, then slide the drive out." }
       ],
-      "next_component": "wifi-card"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "hdd_default",
@@ -175,7 +236,10 @@
         { "order": 1, "action": "Remove the battery and open the HDD access door." },
         { "order": 2, "action": "Slide the drive out by pulling its connector tab." }
       ],
-      "next_component": "wifi-card"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "nvme_flow",
@@ -183,7 +247,10 @@
         { "order": 1, "action": "Open the cover to expose the M.2 slot." },
         { "order": 2, "action": "Unscrew the standoff, lift the SSD at an angle, and slide it out." }
       ],
-      "next_component": "wifi-card"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "sata_flow",
@@ -191,7 +258,10 @@
         { "order": 1, "action": "Remove chassis screws and unplug SATA cables." },
         { "order": 2, "action": "Remove drive mounting screws, then slide the SSD from its bay." }
       ],
-      "next_component": "wifi-card"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "dispose_storage",
@@ -200,14 +270,18 @@
         { "step": "Remove any labels containing sensitive information." },
         { "step": "Take to certified e-waste recycler for proper disposal." }
       ],
-      "next_component": "wifi-card"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "other_issue",
       "text": "Would you like to extract the Wi-Fi card?",
       "options": [
         { "label": "Yes", "next": "extract_wifi" },
-        { "label": "No", "next": "dispose_wifi" }
+        { "label": "No", "next": "dispose_wifi" },
+        { "label": "Return", "next": "issue" }
       ]
     },
     {
@@ -217,7 +291,10 @@
         { "order": 2, "action": "Unscrew the mounting screw and lift off antenna leads." },
         { "order": 3, "action": "Slide the card out at a slight angle." }
       ],
-      "next_component": "end"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "dispose_wifi",
@@ -225,11 +302,24 @@
         { "step": "Remove any identifying stickers or labels." },
         { "step": "Recycle the PCB and metal components at a certified e-waste center." }
       ],
-      "next_component": "end"
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
     },
     {
       "id": "end",
       "text": "All detected components have been processed."
     }
-  ]
+  ],
+
+  "component_labels": {
+    "Battery": "battery",
+    "Fan": "fan",
+    "RAM": "ram",
+    "SSD (2.5 SATA)": "ssd-sata",
+    "SSD (NVMe M.2)": "ssd-nvme",
+    "Hard Drive (HDD)": "hdd",
+    "Wi-Fi Card": "wifi-card"
+  }
 }
