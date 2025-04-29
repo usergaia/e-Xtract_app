@@ -28,8 +28,8 @@
         { "label": "Battery", "next": "battery_type" },
         { "label": "Fan/s", "next": "extract_fan" },
         { "label": "RAM/s", "next": "ram_type" },
-        { "label": "SSD (2.5 SATA)", "next": "sata_flow" },
-        { "label": "SSD (NVMe M.2)", "next": "nvme_flow" },
+        { "label": "SSD (2.5 SATA)", "next": "extract_ssd-sata" },
+        { "label": "SSD (NVMe M.2)", "next": "extract_ssd-nvme" },
         { "label": "Hard Drive (HDD)", "next": "hdd_flow" },
         { "label": "Wi-Fi Card", "next": "extract_wifi"},
         { "label": "Back", "next": "start" },
@@ -144,7 +144,7 @@
       "id": "ram_type",
       "text": "What type of RAM installation does this laptop have?",
       "options": [
-        { "label": "Clip-mounted (removable)", "next": "extract_ram_clips" },
+        { "label": "Clip-mounted (removable)", "next": "extract_ram" },
         { "label": "Soldered to motherboard", "next": "ram_soldered" },
         { "label": "Unsure", "next": "ram_check_type" }
       ]
@@ -153,12 +153,12 @@
       "id": "ram_check_type",
       "text": "Look for metal clips on the sides of the RAM module. If there are no clips and the RAM appears to be part of the motherboard, it is likely soldered.",
       "options": [
-        { "label": "I see clips", "next": "extract_ram_clips" },
+        { "label": "I see clips", "next": "extract_ram" },
         { "label": "Appears soldered", "next": "ram_soldered" }
       ]
     },
     {
-      "id": "extract_ram_clips",
+      "id": "extract_ram",
       "steps": [
         { "order": 1, "action": "Push side clips outward; the RAM pops up at 45°." },
         { "order": 2, "action": "Pull the module straight out of its slot." }
@@ -206,21 +206,21 @@
       "text": "Which storage device type?",
       "options": [
         { "label": "Hard Drive (HDD)", "next": "hdd_flow" },
-        { "label": "SSD (NVMe M.2)", "next": "nvme_flow" },
-        { "label": "SSD (2.5″ SATA)", "next": "sata_flow" },
-        { "label": "Unsure / Other", "next": "hdd_default" }
+        { "label": "SSD (NVMe M.2)", "next": "extract_ssd-nvme" },
+        { "label": "SSD (2.5″ SATA)", "next": "extract_ssd-sata" },
+        { "label": "Unsure / Other", "next": "extract_hard-drive" }
       ]
     },
     {
       "id": "hdd_flow",
       "text": "Is the HDD connected via a ribbon-cable with a flip-up locking flap?",
       "options": [
-        { "label": "Yes", "next": "hdd_motherboard" },
-        { "label": "No", "next": "hdd_default" }
+        { "label": "Yes", "next": "extract_hard-drive_motherboard" },
+        { "label": "No", "next": "extract_hard-drive" }
       ]
     },
     {
-      "id": "hdd_motherboard",
+      "id": "extract_hard-drive_motherboard",
       "steps": [
         { "order": 1, "action": "Flip up the locking flap on the cable connector to release it." },
         { "order": 2, "action": "Remove mounting screws, then slide the drive out." }
@@ -231,7 +231,7 @@
       ]
     },
     {
-      "id": "hdd_default",
+      "id": "extract_hard-drive",
       "steps": [
         { "order": 1, "action": "Remove the battery and open the HDD access door." },
         { "order": 2, "action": "Slide the drive out by pulling its connector tab." }
@@ -242,7 +242,7 @@
       ]
     },
     {
-      "id": "nvme_flow",
+      "id": "extract_ssd-nvme",
       "steps": [
         { "order": 1, "action": "Open the cover to expose the M.2 slot." },
         { "order": 2, "action": "Unscrew the standoff, lift the SSD at an angle, and slide it out." }
@@ -253,7 +253,7 @@
       ]
     },
     {
-      "id": "sata_flow",
+      "id": "extract_ssd-sata",
       "steps": [
         { "order": 1, "action": "Remove chassis screws and unplug SATA cables." },
         { "order": 2, "action": "Remove drive mounting screws, then slide the SSD from its bay." }
@@ -316,10 +316,10 @@
   "component_labels": {
     "Battery": "battery",
     "Fan": "fan",
-    "RAM": "ram",
+    "Ram": "ram",
     "SSD (2.5 SATA)": "ssd-sata",
     "SSD (NVMe M.2)": "ssd-nvme",
-    "Hard Drive (HDD)": "hdd",
+    "Hard Drive (HDD)": "hard-drive",
     "Wi-Fi Card": "wifi-card"
   }
 }

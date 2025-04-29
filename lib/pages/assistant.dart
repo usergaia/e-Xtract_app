@@ -94,10 +94,17 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
       String uniqueKey = entry.key;
       String? originalName = _originalComponentNames[uniqueKey];
       
-      // If this component matches our current component (by name prefix)
-      if (originalName != null && 
-          originalName.toLowerCase().startsWith(_currentComponent!.toLowerCase())) {
-        paths.add(entry.value);
+      if (originalName != null) {
+        // Normalize component names: convert hyphens to underscores ONLY for comparison. Hyphen is a special character that can cause issue if used.
+        String normalizedCurrent = _currentComponent!.toLowerCase().replaceAll('-', '_');
+        String normalizedOriginal = originalName.toLowerCase().replaceAll('-', '_');
+        
+        // Check if they match after normalization
+        if (normalizedOriginal.startsWith(normalizedCurrent) || 
+            normalizedCurrent.startsWith(normalizedOriginal)) {
+          paths.add(entry.value);
+          print("Found matching image: ${entry.value} for component: $_currentComponent");
+        }
       }
     }
     return paths;
@@ -198,7 +205,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   void _updateCurrentComponentFromNodeId(String nodeId) {
     // Check for extraction nodes (by convention they start with 'extract_')
     if (nodeId.startsWith('extract_')) {
-      final componentName = nodeId.substring('extract_'.length);
+      String withoutPrefix = nodeId.substring('extract_'.length);
+
+      String componentName = withoutPrefix.split('_')[0];
       setState(() {
         _currentComponent = componentName;
       });
@@ -959,7 +968,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
 
   // Helper to capitalize first letter of component names
   String _formatComponentName(String name) {
-    return name[0].toUpperCase() + name.substring(1);
+    // Split by underscore and only use the first part
+    String firstPart = name.split('_')[0];
+    return firstPart[0].toUpperCase() + firstPart.substring(1);
   }
 
   // Helper to get unique component names from detected components
