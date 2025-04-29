@@ -25,7 +25,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/guides/open_phone.jpg
+    - assets/guides/open_phone.png
     - assets/guides/dark_phone.png
     - assets/guides/light_phone.png
     - assets/guides/blur_phone.png
@@ -33,29 +33,34 @@ flutter:
     - assets/guides/mul_phone1.png
     - assets/guides/mul_phone2.png
     - assets/guides/mul_phone3.png
-    - assets/guides/open_laptop.jpg
+    - assets/guides/open_laptop.png
     - assets/guides/dark_laptop.png
     - assets/guides/light_laptop.png
-    - assets/guides/blur_laptop.jpeg
-    - assets/guides/unblur_laptop.jpeg
+    - assets/guides/blur_laptop.png
+    - assets/guides/unblur_laptop.png
     - assets/guides/mul_laptop1.png
     - assets/guides/mul_laptop2.png
     - assets/guides/mul_laptop3.png
     - assets/guides/open_desktop.png
-    - assets/guides/dark_desktop.jpeg
-    - assets/guides/light_desktop.jpeg
-    - assets/guides/blur_desktop.jpeg
-    - assets/guides/unblur_desktop.jpeg
-    - assets/guides/mul_desktop1.jpg
-    - assets/guides/mul_desktop2.jpg
-    - assets/guides/mul_desktop3.jpg
+    - assets/guides/dark_desktop.png
+    - assets/guides/light_desktop.png
+    - assets/guides/blur_desktop.png
+    - assets/guides/unblur_desktop.png
+    - assets/guides/mul_desktop1.png
+    - assets/guides/mul_desktop2.png
+    - assets/guides/mul_desktop3.png
     - assets/guides/open_router.png
+    - assets/guides/light_router.png
+    - assets/guides/dark_router.png
+    - assets/guides/blur_router.png
+    - assets/guides/unblur_router.png
     - assets/guides/open_landline.png
+    - assets/guides/light_landline.png
+    - assets/guides/dark_landline.png
+    - assets/guides/blur_landline.png
+    - assets/guides/unblur_landline.png
     - assets/guides/add_img.png
-    - assets/guides/test1.jpg
-    - assets/guides/test2.jpg
-    - assets/guides/test3.jpg
-
+    - assets/guides/default.png
     - assets/desktop_instructions.json
     - assets/laptop_instructions.json
     - assets/landline_instructions.json

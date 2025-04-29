@@ -6,7 +6,7 @@ class DeviceGuideImages {
   static Map<String, List<GuideImage>> categoryGuides = {
     'Smartphone': [
       GuideImage(
-        assetPath: 'assets/guides/open_phone.jpg',
+        assetPath: 'assets/guides/open_phone.png',
         description: "Ensure the device's casing is open, and is placed at an appropriate distance",
         iconData: Icons.ad_units,
       ),
@@ -46,7 +46,7 @@ class DeviceGuideImages {
     ],
     'Laptop': [
       GuideImage(
-        assetPath: 'assets/guides/open_laptop.jpg',
+        assetPath: 'assets/guides/open_laptop.png',
         description: "Ensure the device's casing is open, and is placed at an appropriate distance",
         iconData: Icons.laptop,
       ),
@@ -60,9 +60,9 @@ class DeviceGuideImages {
         isCollage: true,
       ),
       GuideImage(
-        assetPath: 'assets/guides/blur_laptop.jpeg',
+        assetPath: 'assets/guides/blur_laptop.png',
         additionalImages: [
-          'assets/guides/unblur_laptop.jpeg',
+          'assets/guides/unblur_laptop.png',
         ],
         description: 'Ensure the photo is clear and steady',
         isCollage: true,
@@ -91,28 +91,28 @@ class DeviceGuideImages {
         iconData: Icons.desktop_windows,
       ),
       GuideImage(
-        assetPath: 'assets/guides/dark_desktop.jpeg',
+        assetPath: 'assets/guides/dark_desktop.png',
         additionalImages: [
-          'assets/guides/light_desktop.jpeg',
+          'assets/guides/light_desktop.png',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
         isCollage: true,
       ),
       GuideImage(
-        assetPath: 'assets/guides/blur_desktop.jpeg',
+        assetPath: 'assets/guides/blur_desktop.png',
         additionalImages: [
-          'assets/guides/unblur_desktop.jpeg',
+          'assets/guides/unblur_desktop.png',
         ],
         description: 'Ensure the photo is clear and steady',
         isCollage: true,
         iconData: Icons.center_focus_strong,
       ),
       GuideImage(
-        assetPath: 'assets/guides/mul_desktop1.jpg',
+        assetPath: 'assets/guides/mul_desktop1.png',
         additionalImages: [
-          'assets/guides/mul_desktop2.jpg',
-          'assets/guides/mul_desktop3.jpg',
+          'assets/guides/mul_desktop2.png',
+          'assets/guides/mul_desktop3.png',
         ],
         description: 'If necessary, capture multiple angles (top, side, and close-up)',
         isCollage: true,
@@ -131,33 +131,22 @@ class DeviceGuideImages {
         iconData: Icons.router,
       ),
       GuideImage(
-        assetPath: 'assets/guides/test2.jpg',
+        assetPath: 'assets/guides/dark_router.png',
         additionalImages: [
-          'assets/guides/add_img.png',
+          'assets/guides/light_router.png',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
         isCollage: true,
       ),
       GuideImage(
-        assetPath: 'assets/guides/add_img.png',
+        assetPath: 'assets/guides/blur_router.png',
         additionalImages: [
-          'assets/guides/test2.jpg',
-          'assets/guides/test3.jpg',
+          'assets/guides/unblur_router.png',
         ],
         description: 'Ensure the photo is clear and steady',
         isCollage: true,
         iconData: Icons.center_focus_strong,
-      ),
-      GuideImage(
-        assetPath: 'assets/guides/add_img.png',
-        additionalImages: [
-          'assets/guides/test2.jpg',
-          'assets/guides/test3.jpg',
-        ],
-        description: 'If necessary, capture multiple angles (top, side, and close-up)',
-        isCollage: true,
-        iconData: Icons.view_carousel,
       ),
       GuideImage(
         assetPath: 'assets/guides/add_img.png',
@@ -172,33 +161,22 @@ class DeviceGuideImages {
         iconData: Icons.phone,
       ),
       GuideImage(
-        assetPath: 'assets/guides/test2.jpg',
+        assetPath: 'assets/guides/dark_landline.png',
         additionalImages: [
-          'assets/guides/add_img.png',
+          'assets/guides/light_landline.png',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
         isCollage: true,
       ),
       GuideImage(
-        assetPath: 'assets/guides/add_img.png',
+        assetPath: 'assets/guides/blur_landline.png',
         additionalImages: [
-          'assets/guides/test2.jpg',
-          'assets/guides/test3.jpg',
+          'assets/guides/unblur_landline.png',
         ],
         description: 'Ensure the photo is clear and steady',
         isCollage: true,
         iconData: Icons.center_focus_strong,
-      ),
-      GuideImage(
-        assetPath: 'assets/guides/add_img.png',
-        additionalImages: [
-          'assets/guides/test2.jpg',
-          'assets/guides/test3.jpg',
-        ],
-        description: 'If necessary, capture multiple angles (top, side, and close-up)',
-        isCollage: true,
-        iconData: Icons.view_carousel,
       ),
       GuideImage(
         assetPath: 'assets/guides/add_img.png',
@@ -214,12 +192,12 @@ class DeviceGuideImages {
       // Default guides if the category isn't found
       [
         GuideImage(
-          assetPath: 'assets/guides/default_1.png',
+          assetPath: 'assets/guides/default.png',
           description: 'Take a clear photo of the entire device',
           iconData: Icons.photo_camera,
         ),  
         GuideImage(
-          assetPath: 'assets/guides/default_2.png',
+          assetPath: 'assets/guides/default.png',
           description: 'Open the device to expose internal components',
           iconData: Icons.build,
         ),
