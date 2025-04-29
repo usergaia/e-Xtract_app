@@ -88,7 +88,7 @@
         { 
           "order": 1,
           "action": "Gently disconnect the two cables from the hard drive: the wide flat data cable and the small power cable with colored wires.",
-          "image": "assets/img_assistance/hdd_cable.png"
+          "image": "assets/img_assistance/hdd_plug.png"
         },
 
         { 
@@ -188,7 +188,7 @@
         { 
           "order": 2, 
           "action": "For Intel: Locate the Push Pins (4 corners). Turn each pin about 90° counterclockwise using your fingers or a flathead screwdriver.", 
-          "image": "assets/img_assistance/intel_pushpin.png"
+          "image": "assets/img_assistance/intel_pins.jpg"
         },
         {
            "order": 3, 
