@@ -130,7 +130,7 @@ class _UploadPageState extends State<UploadPage> {
             
             // Instructional text with improved styling
             Text(
-              'Upload pictures of your e-waste or use your camera.', // The text content
+              'Upload pictures of your e-waste or use your camera. We recommend having at least two images for better results.', // The text content
               style: GoogleFonts.montserrat( // Using Google Fonts
                 color: Colors.white70, // Slightly transparent white
                 fontSize: 20, // Larger font size
