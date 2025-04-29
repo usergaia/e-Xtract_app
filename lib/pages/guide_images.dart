@@ -11,12 +11,13 @@ class DeviceGuideImages {
         iconData: Icons.ad_units,
       ),
      GuideImage(
-        assetPath: 'assets/guides/test2.jpg',
+        assetPath: 'assets/guides/test1.jpg',
         additionalImages: [
           'assets/guides/test1.jpg',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
+        isCollage: true,
       ),
       GuideImage(
         assetPath: 'assets/guides/mul_desk1.jpg',
@@ -61,6 +62,7 @@ class DeviceGuideImages {
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
+        isCollage: true,
       ),
       GuideImage(
         assetPath: 'assets/guides/mul_desk1.jpg',
@@ -105,6 +107,7 @@ class DeviceGuideImages {
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
         iconData: Icons.lightbulb_outline,
+        isCollage: true,
       ),
       GuideImage(
         assetPath: 'assets/guides/mul_desk1.jpg',
@@ -148,6 +151,7 @@ class DeviceGuideImages {
           'assets/guides/test1.jpg',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
+        isCollage: true,
         iconData: Icons.lightbulb_outline,
       ),
       GuideImage(
@@ -192,6 +196,7 @@ class DeviceGuideImages {
           'assets/guides/test1.jpg',
         ],
         description: 'Make sure the device is well-lit to avoid shadows or glares',
+        isCollage: true,
         iconData: Icons.lightbulb_outline,
       ),
       GuideImage(
@@ -434,23 +439,26 @@ class _DeviceGuideSliderState extends State<DeviceGuideSlider> {
                                 // Previous button
                                 if (currentIndex > 0)
                                   IconButton(
-                                    icon: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black54,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.arrow_back_ios,
-                                        color: Colors.white,
-                                        size: 24,
-                                      ),
+                                  icon: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
                                     ),
-                                    onPressed: () {
-                                      setState(() {
-                                        currentIndex--;
-                                      });
-                                    },
+                                    child: const Padding(
+                                    padding: EdgeInsets.only(left: 8),
+                                    child: Icon(
+                                      Icons.arrow_back_ios,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                    currentIndex--;
+                                    });
+                                  },
                                   )
                                 else
                                   const SizedBox(width: 48),
