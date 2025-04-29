@@ -25,6 +25,18 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/guides/phone.jpg
+    - assets/guides/desktop1.png
+    - assets/guides/desktop2.jpg
+    - assets/guides/mul_desk1.jpg
+    - assets/guides/mul_desk2.jpg
+    - assets/guides/mul_desk3.jpg
+    - assets/guides/landline.png
+    - assets/guides/router.png
+    - assets/guides/laptop.jpg
+    - assets/guides/test1.jpg
+    - assets/guides/test2.jpg
+    - assets/guides/test3.jpg
     - assets/desktop_instructions.json
     - assets/laptop_instructions.json
     - assets/landline_instructions.json

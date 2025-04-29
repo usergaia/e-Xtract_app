@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '/pages/part_detection.dart'; 
 import '/pages/base.dart'; 
 import 'package:google_fonts/google_fonts.dart'; // Added Google Fonts for better typography
+import '/pages/guide_images.dart'; // Importing guide images for the selected category
 
 // This widget represents the UploadPage screen where users can upload/select images
 // Since the UI needs to update dynamically based on the contents of _selectedImages, a StatefulWidget is required.
@@ -126,8 +127,33 @@ class _UploadPageState extends State<UploadPage> {
         child: Column( // Arranges widgets vertically
           crossAxisAlignment: CrossAxisAlignment.stretch, // Stretches children horizontally
           children: [ // List of widgets inside the column
-            const SizedBox(height: 50), // Adds vertical spacing from the top
-            
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10), // Padding below the text
+            child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, // Centers the row content
+            children: [
+              Text(
+              'Guide Images', // The text content
+              style: GoogleFonts.montserrat( // Using Google Fonts
+                color: const Color.fromARGB(179, 246, 255, 0), // Slightly transparent white
+                fontSize: 20, // Larger font size
+                fontWeight: FontWeight.w600, // Medium-bold weight
+              ),
+              textAlign: TextAlign.center, // Centers the text
+              ),
+              const SizedBox(width: 8), // Space between text and icon
+              const Icon(
+              Icons.info_outline, // Info icon
+              color: Color.fromARGB(179, 246, 255, 0), // Same color as text
+              size: 24, // Icon size
+              ),
+            ],
+            ),
+          ),
+
+              DeviceGuideSlider(deviceCategory: widget.category),
+              
+              const SizedBox(height: 30),
             // Instructional text with improved styling
             Text(
               'Upload pictures of your e-waste or use your camera.', // The text content
