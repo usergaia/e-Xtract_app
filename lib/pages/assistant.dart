@@ -94,10 +94,17 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
       String uniqueKey = entry.key;
       String? originalName = _originalComponentNames[uniqueKey];
       
-      // If this component matches our current component (by name prefix)
-      if (originalName != null && 
-          originalName.toLowerCase().startsWith(_currentComponent!.toLowerCase())) {
-        paths.add(entry.value);
+      if (originalName != null) {
+        // Normalize component names: convert hyphens to underscores ONLY for comparison. Hyphen is a special character that can cause issue if used.
+        String normalizedCurrent = _currentComponent!.toLowerCase().replaceAll('-', '_');
+        String normalizedOriginal = originalName.toLowerCase().replaceAll('-', '_');
+        
+        // Check if they match after normalization
+        if (normalizedOriginal.startsWith(normalizedCurrent) || 
+            normalizedCurrent.startsWith(normalizedOriginal)) {
+          paths.add(entry.value);
+          print("Found matching image: ${entry.value} for component: $_currentComponent");
+        }
       }
     }
     return paths;
@@ -198,7 +205,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   void _updateCurrentComponentFromNodeId(String nodeId) {
     // Check for extraction nodes (by convention they start with 'extract_')
     if (nodeId.startsWith('extract_')) {
-      final componentName = nodeId.substring('extract_'.length);
+      String withoutPrefix = nodeId.substring('extract_'.length);
+
+      String componentName = withoutPrefix.split('_')[0];
       setState(() {
         _currentComponent = componentName;
       });
@@ -292,266 +301,294 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   @override
   Widget build(BuildContext context) {
     return Base(
-      title: 'Extraction Assistant', // Page title
-      child: Column(
-        children: [
-          // Top collapsible summary section (green header)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300), // Animation duration when expanding/collapsing
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header row with title and toggle button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Device Category',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    // Toggle button for expanding/collapsing
-                    IconButton(
-                      icon: Icon(
-                        _isSummaryExpanded 
-                            ? Icons.keyboard_arrow_up 
-                            : Icons.keyboard_arrow_down,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        // Update UI state when pressed
-                        setState(() {
-                          _isSummaryExpanded = !_isSummaryExpanded;
-                        });
-                      },
-                    ),
-                  ],
+      title: 'Extraction Assistant',
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16), // Add padding around everything
+        child: Column(
+          children: [
+            // Top collapsible summary section (green header)
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                
-                // Device category display (e.g., "Laptop")
-                Text(
-                  widget.initialCategory,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                
-                // Component chips (small buttons) for each detected component
-                if (widget.initialDetections.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 8),
-                    child: Wrap( // Wrap automatically handles wrapping to next line
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _getUniqueComponents().map((component) {
-                        // Process component name for display
-                        final displayName = component.split('_')[0];
-                        final baseComponent = displayName.toLowerCase();
-                        
-                        // Check if this is the currently selected component
-                        final isCurrentComponent = _currentComponent != null && 
-                            baseComponent == _currentComponent!.toLowerCase();
-                        
-                        // Get appropriate icon for this component type
-                        IconData iconData = _getIconForComponent(baseComponent);
-                        
-                        // Build chip UI
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isCurrentComponent 
-                                ? Colors.white  // White background for selected
-                                : Colors.white10, // Translucent for others
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isCurrentComponent 
-                                  ? Colors.white 
-                                  : Colors.white30
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                iconData,
-                                color: isCurrentComponent 
-                                    ? const Color(0xFF34A853) // Green for selected
-                                    : Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _formatComponentName(displayName),
-                                style: GoogleFonts.montserrat(
-                                  color: isCurrentComponent 
-                                      ? const Color(0xFF34A853) 
-                                      : Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                
-                // Additional sections only shown when expanded
-                if (_isSummaryExpanded && widget.initialComponentImages.isNotEmpty) ...[
-                  // Input Images Section - shows original device photos
-                  const SizedBox(height: 16),
-                  Text(
-                    'Input Images',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Horizontal scrolling list of images
-                  SizedBox(
-                    height: 120,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal, // Horizontal scrolling
-                      children: [
-                        for (var imagePath in widget.initialComponentImages.keys)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () => _showImageOverlay(context, imagePath), // Show fullscreen on tap
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.white30),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(imagePath),
-                                    height: 120,
-                                    width: 160, // Set a fixed width to maintain aspect ratio
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Detected Components Section - cropped component images
-                  const SizedBox(height: 16),
-                  Text(
-                    'Detected Components',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Horizontal scrolling grid of component images
-                  SizedBox(
-                    height: 140,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        // Nested loops to get all component images
-                        for (var entry in widget.initialComponentImages.entries)
-                          for (var componentEntry in entry.value.entries)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: GestureDetector(
-                                onTap: () => _showImageOverlay(context, componentEntry.value),
-                                child: Container(
-                                  width: 120,
-                                  // Highlight the current component
-                                  decoration: BoxDecoration(
-                                    color: _isCurrentComponentImage(componentEntry.key) 
-                                        ? Colors.white 
-                                        : Colors.white10,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      // Component image thumbnail
-                                      Expanded(
-                                        child: ClipRRect(
-                                          borderRadius: const BorderRadius.vertical(
-                                            top: Radius.circular(8),
-                                          ),
-                                          child: Image.file(
-                                            File(componentEntry.value),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      // Component name label
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8,
-                                          horizontal: 4,
-                                        ),
-                                        child: Text(
-                                          _formatComponentName(componentEntry.key.split('_')[0]),
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 12,
-                                            color: _isCurrentComponentImage(componentEntry.key)
-                                                ? const Color(0xFF34A853)
-                                                : Colors.white,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                      ],
-                    ),
+                borderRadius: BorderRadius.circular(20), // Rounded corners
+                boxShadow: [ // Optional shadow for depth
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
-              ],
+              ),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row with title and toggle button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Device Category',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        // Toggle button for expanding/collapsing
+                        IconButton(
+                          icon: Icon(
+                            _isSummaryExpanded 
+                                ? Icons.keyboard_arrow_up 
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            // Update UI state when pressed
+                            setState(() {
+                              _isSummaryExpanded = !_isSummaryExpanded;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    
+                    // Device category display (e.g., "Laptop")
+                    Text(
+                      widget.initialCategory,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    
+                    // Component chips (small buttons) for each detected component
+                    if (widget.initialDetections.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 8),
+                        child: Wrap( // Wrap automatically handles wrapping to next line
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _getUniqueComponents().map((component) {
+                            // Process component name for display
+                            final displayName = component.split('_')[0];
+                            final baseComponent = displayName.toLowerCase();
+                            
+                            // Check if this is the currently selected component
+                            final isCurrentComponent = _currentComponent != null && 
+                                baseComponent == _currentComponent!.toLowerCase();
+                            
+                            // Get appropriate icon for this component type
+                            IconData iconData = _getIconForComponent(baseComponent);
+                            
+                            // Build chip UI
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isCurrentComponent 
+                                    ? Colors.white  // White background for selected
+                                    : Colors.white10, // Translucent for others
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isCurrentComponent 
+                                      ? Colors.white 
+                                      : Colors.white30
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    iconData,
+                                    color: isCurrentComponent 
+                                        ? const Color(0xFF34A853) // Green for selected
+                                        : Colors.white,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _formatComponentName(displayName),
+                                    style: GoogleFonts.montserrat(
+                                      color: isCurrentComponent 
+                                          ? const Color(0xFF34A853) 
+                                          : Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    
+                    // Additional sections only shown when expanded
+                    if (_isSummaryExpanded && widget.initialComponentImages.isNotEmpty) ...[
+                      // Input Images Section - shows original device photos
+                      const SizedBox(height: 16),
+                      Text(
+                        'Input Images',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Horizontal scrolling list of images
+                      SizedBox(
+                        height: 120,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal, // Horizontal scrolling
+                          children: [
+                            for (var imagePath in widget.initialComponentImages.keys)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () => _showImageOverlay(context, imagePath), // Show fullscreen on tap
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.white30),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        File(imagePath),
+                                        height: 120,
+                                        width: 160, // Set a fixed width to maintain aspect ratio
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Detected Components Section - cropped component images
+                      const SizedBox(height: 16),
+                      Text(
+                        'Detected Components',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Horizontal scrolling grid of component images
+                      SizedBox(
+                        height: 140,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            // Nested loops to get all component images
+                            for (var entry in widget.initialComponentImages.entries)
+                              for (var componentEntry in entry.value.entries)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: GestureDetector(
+                                    onTap: () => _showImageOverlay(context, componentEntry.value),
+                                    child: Container(
+                                      width: 120,
+                                      // Highlight the current component
+                                      decoration: BoxDecoration(
+                                        color: _isCurrentComponentImage(componentEntry.key) 
+                                            ? Colors.white 
+                                            : Colors.white10,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          // Component image thumbnail
+                                          Expanded(
+                                            child: ClipRRect(
+                                              borderRadius: const BorderRadius.vertical(
+                                                top: Radius.circular(8),
+                                              ),
+                                              child: Image.file(
+                                                File(componentEntry.value),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                          // Component name label
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 8,
+                                              horizontal: 4,
+                                            ),
+                                            child: Text(
+                                              _formatComponentName(componentEntry.key.split('_')[0]),
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 12,
+                                                color: _isCurrentComponentImage(componentEntry.key)
+                                                    ? const Color(0xFF34A853)
+                                                    : Colors.white,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-          ),
-          
-          // Main instructions section (white area)
-          Expanded(
-            child: Container(
-              color: Colors.white,
+            
+            const SizedBox(height: 16), // Space between containers
+            
+            // Main instructions section (white area)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20), // Rounded corners
+                boxShadow: [ // Optional shadow for depth
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               // Show loading indicator or instructions based on state
               child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF34A853)))
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(color: Color(0xFF34A853)),
+                    ),
+                  )
                 : _buildInstructionsContent(),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-  
+
   // Check if a component image belongs to the current component
   bool _isCurrentComponentImage(String componentKey) {
     if (_currentComponent == null) return false;
@@ -609,6 +646,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Component title at top if we're on a component-specific node
           if (_currentComponent != null)
@@ -693,123 +731,119 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
           const SizedBox(height: 24),
           
           // Scrollable area for steps and options (allows for overflow content)
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Step-by-step instructions (if this node has steps)
-                  if (_currentNode!.isStepNode) ...[
-                    ListView.builder(
-                      shrinkWrap: true, // Important for nested scrolling
-                      physics: NeverScrollableScrollPhysics(), // Disable scrolling of inner list
-                      itemCount: _currentNode!.steps.length,
-                      itemBuilder: (context, index) {
-                        final step = _currentNode!.steps[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Step number circle
-                              Container(
-                                width: 28,
-                                height: 28,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '${index + 1}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Step-by-step instructions (if this node has steps)
+              if (_currentNode!.isStepNode) ...[
+                ListView.builder(
+                  shrinkWrap: true, // Important for nested scrolling
+                  physics: NeverScrollableScrollPhysics(), // Disable scrolling of inner list
+                  itemCount: _currentNode!.steps.length,
+                  itemBuilder: (context, index) {
+                    final step = _currentNode!.steps[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Step number circle
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              // Step instruction text
-                              Expanded(
-                                child: Text(
-                                  step.action,
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    color: Colors.grey[800],
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                          const SizedBox(width: 12),
+                          // Step instruction text
+                          Expanded(
+                            child: Text(
+                              step.action,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
 
-                  // Options/answers for questions (if this node has options)
-                  if (_currentNode!.isQuestionNode) ...[
-                    // Only show label if there are no steps (avoids redundancy)
-                    if (!_currentNode!.isStepNode) 
-                      Text(
-                        'Select an option:',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
+              // Options/answers for questions (if this node has options)
+              if (_currentNode!.isQuestionNode) ...[
+                // Only show label if there are no steps (avoids redundancy)
+                if (!_currentNode!.isStepNode) 
+                  Text(
+                    'Select an option:',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                if (!_currentNode!.isStepNode)  
+                  const SizedBox(height: 16),
+                
+                // Generate buttons for each option
+                ..._getFilteredOptions().map((option) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _navigateToNode(option.next), // Navigate on press
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            option.label,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
-                    if (!_currentNode!.isStepNode)  
-                      const SizedBox(height: 16),
-                    
-                    // Generate buttons for each option
-                    ..._getFilteredOptions().map((option) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => _navigateToNode(option.next), // Navigate on press
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: Text(
-                                option.label,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                ],
-              ),
-            ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ],
           ),
           
           // Next button for step nodes (at bottom of screen)
@@ -934,7 +968,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
 
   // Helper to capitalize first letter of component names
   String _formatComponentName(String name) {
-    return name[0].toUpperCase() + name.substring(1);
+    // Split by underscore and only use the first part
+    String firstPart = name.split('_')[0];
+    return firstPart[0].toUpperCase() + firstPart.substring(1);
   }
 
   // Helper to get unique component names from detected components

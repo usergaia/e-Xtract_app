@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +40,6 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
   
   // Lists to store detection results for each image
   List<List<Detection>> _allDetections = []; // Outer list are the images. Inner list are the detections for each image
-  List<String> _processedImagePaths = []; // Store paths to processed images with bounding boxes
   List<Map<String, String>> _allCroppedComponents = []; // Store paths to cropped component images
   
   // Track the current image being processed/viewed
@@ -89,11 +86,6 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
       (index) => [], // Each image starts with an empty detection list
     );
     
-    // Initialize empty paths for processed images
-    _processedImagePaths = List.generate(
-      widget.selectedImages.length,
-      (index) => "", // Empty string for each image
-    );
     
     // Initialize empty maps for cropped component images
     _allCroppedComponents = List.generate(
@@ -408,52 +400,6 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
     }
   }
 
-  // Capture the rendered image with bounding boxes drawn on it
-  Future<void> _captureProcessedImage(int index) async {
-    try {
-      // Check if the widget has been rendered
-      if (_imageWithBoxesKeys[index].currentContext == null) {
-        print("Cannot find render object for image $index");
-        return;
-      }
-      
-      // Get the render object for the image with bounding boxes
-      final boundary = _imageWithBoxesKeys[index].currentContext!
-          .findRenderObject() as RenderRepaintBoundary;
-      
-      // Convert render object to an image
-      final image = await boundary.toImage(pixelRatio: 2.0); // 2x resolution for clarity
-      // Convert image to PNG bytes
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      
-      if (byteData != null) {
-        // Convert ByteData to Uint8List (array of bytes)
-        final pngBytes = byteData.buffer.asUint8List();
-        
-        // Save to temporary file
-        final directory = await getTemporaryDirectory(); // Get temp directory
-        final timestamp = DateTime.now().millisecondsSinceEpoch; // Unique identifier
-        final path = '${directory.path}/processed_${index}_$timestamp.png'; // File path
-        
-        // Write bytes to file
-        final imageFile = File(path);
-        await imageFile.writeAsBytes(pngBytes);
-        
-        // Update state with the new processed image path
-        setState(() {
-          _processedImagePaths[index] = path;
-        });
-        
-        // Crop individual component images from the original
-        _allCroppedComponents[index] = await _cropAllDetectedComponents(
-          widget.selectedImages[index].path,
-          _allDetections[index],
-        );
-      }
-    } catch (e) {
-      print("Error capturing processed image: $e");
-    }
-  }
 
   // Crop all detected components from the original image
   Future<Map<String, String>> _cropAllDetectedComponents(
