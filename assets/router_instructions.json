@@ -1,0 +1,82 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "text": "What part of the router are you working on?",
+      "options": [
+        { "label": "Antenna", "next": "antenna_flow" },
+        { "label": "Router Board", "next": "router_board_flow" }
+      ]
+    },
+    {
+      "id": "antenna_flow",
+      "text": "Is the antenna external (screw-in) or internal (wired)?",
+      "options": [
+        { "label": "External (screw-on antenna)", "next": "remove_external_antenna" },
+        { "label": "Internal (fixed inside case)", "next": "remove_internal_antenna" }
+      ]
+    },
+    {
+      "id": "remove_external_antenna",
+      "steps": [
+        { "order": 1, "action": "Grip the base of the antenna where it meets the router." },
+        { "order": 2, "action": "Twist counter-clockwise to unscrew and detach the antenna." }
+      ],
+      "options": [
+        { "label": "Continue to Router Board", "next": "router_board_flow" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "remove_internal_antenna",
+      "steps": [
+        { "order": 1, "action": "Unscrew the casing screws and open the router carefully." },
+        { "order": 2, "action": "Locate the internal antenna (typically a small wire or PCB strip)." },
+        { "order": 3, "action": "Disconnect the antenna cable from the router board or unclip it if applicable." }
+      ],
+      "options": [
+        { "label": "Continue to Router Board", "next": "router_board_flow" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "router_board_flow",
+      "text": "Is the router board immediately accessible after opening the case?",
+      "options": [
+        { "label": "Yes", "next": "remove_board_simple" },
+        { "label": "No, additional parts are blocking it.", "next": "remove_board_obstructed" }
+      ]
+    },
+    {
+      "id": "remove_board_simple",
+      "steps": [
+        { "order": 1, "action": "Unscrew any mounting screws securing the board." },
+        { "order": 2, "action": "Disconnect any attached cables (power, Ethernet ports, antennas)." },
+        { "order": 3, "action": "Lift the board carefully out of the housing." }
+      ],
+      "options": [
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "remove_board_obstructed",
+      "steps": [
+        { "order": 1, "action": "Remove shielding plates, heatsinks, or plastic brackets covering the board." },
+        { "order": 2, "action": "Unscrew the board's mounting screws." },
+        { "order": 3, "action": "Detach all connected cables and antenna wires carefully." },
+        { "order": 4, "action": "Extract the board slowly to avoid damaging small ports." }
+      ],
+      "options": [
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "end",
+      "text": "All selected components have been processed."
+    }
+  ],
+  "component_labels": {
+    "Router Board": "router-board",
+    "Antenna": "antenna"
+  }
+}

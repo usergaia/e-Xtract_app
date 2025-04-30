@@ -1,0 +1,89 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "text": "What do you want to handle first?",
+      "options": [
+        { "label": "Issues of my landline phone", "next": "issue" },
+        { "label": "Component Extraction", "next": "component_extraction" }
+      ]
+    },
+    {
+      "id": "issue",
+      "text": "What issue would you like to address?",
+      "options": [
+        { "label": "No dial tone", "next": "line_issue" },
+        { "label": "Cannot hear caller", "next": "speaker_issue" },
+        { "label": "Phone not powering on", "next": "board_issue" },
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "component_extraction",
+      "text": "Which part would you like to extract?",
+      "options": [
+        { "label": "Phone Board", "next": "extract_phone_board" },
+        { "label": "Phone Speaker", "next": "extract_phone_speaker" },
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "line_issue",
+      "text": "Line issues are often related to the phone board. Would you like to extract the phone board?",
+      "options": [
+        { "label": "Yes", "next": "extract_phone_board" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "speaker_issue",
+      "text": "Would you like to extract or inspect the phone speaker?",
+      "options": [
+        { "label": "Yes", "next": "extract_phone_speaker" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "board_issue",
+      "text": "Would you like to extract or inspect the phone board?",
+      "options": [
+        { "label": "Yes", "next": "extract_phone_board" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "extract_phone_board",
+      "steps": [
+        { "order": 1, "action": "Unscrew the casing of the phone carefully." },
+        { "order": 2, "action": "Locate and disconnect any wires connected to the phone board." },
+        { "order": 3, "action": "Gently lift and remove the phone board from the casing." }
+      ],
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_phone_speaker",
+      "steps": [
+        { "order": 1, "action": "Open the phone casing carefully." },
+        { "order": 2, "action": "Locate the speaker attached inside the casing." },
+        { "order": 3, "action": "Disconnect the speaker wires and remove the speaker." }
+      ],
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "end",
+      "text": "All selected components have been processed."
+    }
+  ],
+  "component_labels": {
+    "Phone Board": "phone-board",
+    "Phone Speaker": "phone-speaker"
+  }
+}
