@@ -109,7 +109,7 @@
       "steps": [
         { 
           "order": 1, 
-          "action": "Locate the small screw securing the NVMe SSD to the M.2 slot. It is usually at the end",
+          "action": "Locate the small screw securing the NVMe SSD to the M.2 slot. For some, it is just a pin that you can pull out.",
           "image": "assets/img_assistance/ssd_screw.jpg"
         },
 
@@ -119,7 +119,7 @@
           "image": "assets/img_assistance/ssd_lift.png"
         },
 
-        { "order": 3, "action": "You can now gently pull it away." }
+        { "order": 3, "action": "You can now gently pull it the SSD away." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -198,9 +198,9 @@
 
         { 
           "order": 4, 
-          "action": "For Others it has Lever + Clip Mechanism. Locate the metal retention clip hooked onto the plastic bracket. your fingers to unclip it from one side. Flip the lever up to release tension",
+          "action": "For Others, it has Lever + Clip Mechanism. Locate the metal retention clip hooked onto the plastic bracket. Use your fingers to unclip it from one side. Flip the lever up to release tension",
           "image": "assets/img_assistance/other_lever.png"},
-        { "order": 5, "action": "Once all push-pins (Intel) or screws (AMD) have been properly loosened, gently wiggle the cooler side to side to break the thermal paste seal. Then lift the cooler straight up without applying force. Do not yank—if it feels stuck, twist slightly to loosen." }
+        { "order": 5, "action": "Once all push-pins (Intel), screws (AMD) or others (Lever + Clip) have been properly loosened, gently wiggle the cooler side to side to break the thermal paste seal. Then lift the cooler straight up without applying force. Do not yank—if it feels stuck, twist slightly to loosen." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -218,7 +218,7 @@
         },
         { 
           "order": 2, 
-          "action": "Remove the screws or clips securing the fan to the chassis. If there are no screws, gently pull the clips away from the fan."
+          "action": "Remove any screws or clips holding the fan in place. If clips are used instead of screws, gently unclip them to release the fan from the case."
         },
         { 
           "order": 3, 
