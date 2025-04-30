@@ -914,7 +914,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
           // Navigation action buttons (always visible)
           const SizedBox(height: 24),
           
-          // Device change and Add images buttons
+          // Navigation action buttons container
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -925,8 +925,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
               children: [
                 Row(
                   children: [
+                    // Change Device button with gradient
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -935,21 +936,46 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.change_circle),
-                        label: const Text('Change Device'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.change_circle, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Change Device',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 12), // Space between buttons
+                    
+                    // Add Images button
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: ElevatedButton(
                         onPressed: () {
                           // Extract all component image paths into a list of File objects
                           List<File> existingImages = [];
@@ -970,14 +996,37 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Add Images'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF43A047),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.add_photo_alternate, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Add Images',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

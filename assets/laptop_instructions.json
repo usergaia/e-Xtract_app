@@ -407,5 +407,17 @@
     "SSD (NVMe M.2)": "ssd-nvme",
     "Hard Drive (HDD)": "hard-drive",
     "Wi-Fi Card": "wifi-card"
+  },
+
+  "issue_component_mapping": {
+    "Laptop is not powering on": ["battery"],
+    "Laptop is overheating": ["fan"],
+    "Memory issue / RAM failure": ["ram"],
+    "NVMe SSD not detected / failing": ["ssd-nvme"],
+    "SATA SSD not working / corrupted": ["ssd-sata"],
+    "Hard Drive clicking / not spinning": ["hard-drive"],
+    "Connectivity issue (Wi-Fi)": ["wifi-card"]
   }
 }
+
+  
