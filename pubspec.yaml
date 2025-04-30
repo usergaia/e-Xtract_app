@@ -64,6 +64,18 @@ flutter:
     - assets/guides/add_img.png #extra
     - assets/guides/default.png 
 
+    - assets/img_assistance/ssd_screw.jpg
+    - assets/img_assistance/ssd_lift.png
+    - assets/img_assistance/cpu_cooler_socket.png
+    - assets/img_assistance/hdd_plug.png
+    - assets/img_assistance/hdd_screw.png
+    - assets/img_assistance/cmos_lever.png
+    - assets/img_assistance/intel_pins.jpg
+    - assets/img_assistance/amd_screw.png
+    - assets/img_assistance/other_lever.png
+    - assets/img_assistance/fan_socket.png
+    - assets/img_assistance/cpu_lever.png
+
     # Knowledge-base
     - assets/desktop_instructions.json
     - assets/laptop_instructions.json
@@ -83,4 +95,3 @@ flutter:
     - assets/models/telecom/labels.txt
 
 
-  

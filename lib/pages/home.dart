@@ -75,7 +75,7 @@ class HomePage extends StatelessWidget {
                               context: context,
                               icon: Icons.chat_bubble_outline,
                               title: 'Get Help',
-                              subtitle: 'Chat with our AI assistant',
+                              subtitle: 'Get helpful instructions from our extraction assistant',
                             ),
                           ],
                         ),

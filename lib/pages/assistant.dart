@@ -43,13 +43,13 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   // Component tracking variables
   String? _currentComponent; // Currently selected component (e.g., "ram")
   Map<String, dynamic>? _componentMapping; // Maps issue types to components
-  List<String>? _componentOrder; // Order of components from configuration
   Map<String, String>? _componentStartNodes; // Maps component names to their starting node IDs
   
   // Image handling
   Map<String, String> _componentImagePaths = {}; // Quick lookup for component images
   Map<String, String> _originalComponentNames = {}; // Maps unique keys back to component names
   Map<String, String>? _componentLabelMapping; // Maps UI labels to component internal names
+  Map<String, dynamic>? _issueComponentMapping; // Maps issues to related components
 
   // Lifecycle method called when widget is first created
   @override
@@ -150,10 +150,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
     if (rawData != null) {
       // Extract various configuration maps from the JSON
       _componentMapping = rawData['component_mapping'];
-      
-      // Parse component ordering (if available)
-      if (rawData.containsKey('component_order')) {
-        _componentOrder = List<String>.from(rawData['component_order']);
+
+      if (rawData.containsKey('issue_component_mapping')) {
+        _issueComponentMapping = Map<String, dynamic>.from(rawData['issue_component_mapping']);
       }
       
       // Parse component starting nodes (if available)
@@ -165,12 +164,12 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
       if (rawData.containsKey('component_labels')) {
         _componentLabelMapping = Map<String, String>.from(rawData['component_labels']);
       }
-      
+
       // Debug output
       print("Component mapping: $_componentMapping");
-      print("Component order: $_componentOrder");
       print("Component start nodes: $_componentStartNodes");
       print("Component label mapping: $_componentLabelMapping");
+      print("Issue component mapping: $_issueComponentMapping");
     }
   }
   
@@ -737,49 +736,76 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
               // Step-by-step instructions (if this node has steps)
               if (_currentNode!.isStepNode) ...[
                 ListView.builder(
-                  shrinkWrap: true, // Important for nested scrolling
-                  physics: NeverScrollableScrollPhysics(), // Disable scrolling of inner list
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
                   itemCount: _currentNode!.steps.length,
                   itemBuilder: (context, index) {
                     final step = _currentNode!.steps[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Row(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Step number circle
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Step number circle
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 12),
+                              // Step instruction text
+                              Expanded(
+                                child: Text(
+                                  step.action,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    color: Colors.grey[800],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Add image if available
+                          if (step.image != null && step.image!.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            GestureDetector(
+                              onTap: () => _showImageOverlay(context, step.image!),
+                              child: Container(
+                                height: 150,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    step.image!,
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Step instruction text
-                          Expanded(
-                            child: Text(
-                              step.action,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ),
+                          ],
                         ],
                       ),
                     );
@@ -1002,6 +1028,19 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
       }).toList();
     }
     
+    // Special handling for issue screen - only show detected components
+    else if (_currentNode!.id == "issue") {
+      return _currentNode!.options.where((option) {
+        // Always include navigation options
+        if (["Back", "End"].contains(option.label)) {
+          return true;
+        }
+        
+        // Check if this issue is related to any detected component
+        return _isIssueRelevantToDetectedComponents(option.label);
+      }).toList();
+    }
+
     // For other screens, show all available options
     return _currentNode!.options;
   }
@@ -1025,5 +1064,31 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
     
     // Default fallback: extract the first word and convert to lowercase
     return label.split(' ')[0].toLowerCase();
+  }
+
+  // Helper to determine if an issue should be shown based on detected components
+  bool _isIssueRelevantToDetectedComponents(String issueLabel) {
+    // If we have issue_component_mapping in JSON, use it
+    if (_issueComponentMapping != null && _issueComponentMapping!.containsKey(issueLabel)) {
+      final components = _issueComponentMapping![issueLabel];
+      
+      // Handle both string and list mappings
+      if (components is List) {
+        // Check if any of these components were detected
+        return components.any((component) => 
+          widget.initialDetections.any((detection) => 
+            detection.toLowerCase().startsWith(component.toLowerCase())));
+      } 
+      else if (components is String) {
+        // Check if this single component was detected
+        return widget.initialDetections.any((detection) => 
+          detection.toLowerCase().startsWith(components.toLowerCase()));
+      }
+    }
+    
+    // Fallback to component label mapping
+    String componentName = _getComponentNameFromLabel(issueLabel).toLowerCase();
+    return widget.initialDetections.any((detection) => 
+      detection.toLowerCase().startsWith(componentName));
   }
 }
