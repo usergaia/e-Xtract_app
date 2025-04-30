@@ -417,6 +417,37 @@
     "SATA SSD not working / corrupted": ["ssd-sata"],
     "Hard Drive clicking / not spinning": ["hard-drive"],
     "Connectivity issue (Wi-Fi)": ["wifi-card"]
+  },
+
+  "component_values": {
+    "ram": {
+      "price": 1.00,
+      "notes": "Memory modules often retain value"
+    },
+    "ssd-nvme": {
+      "price": 2.00,
+      "notes": "High demand for SSDs"
+    },
+    "ssd-sata": {
+      "price": 3.00,
+      "notes": "Common in older laptops"
+    },
+    "hard-drive": {
+      "price": 4.00,
+      "notes": "Check for bad sectors"
+    },
+    "battery": {
+      "price": 5.00,
+      "notes": "Capacity test recommended"
+    },
+    "fan": {
+      "price": 6.00,
+      "notes": "Common replacement part"
+    },
+    "wifi-card": {
+      "price": 7.00,
+      "notes": "Compatible with most laptops"
+    }
   }
 }
 

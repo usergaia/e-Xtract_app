@@ -5,6 +5,7 @@ import '/pages/base.dart';
 import '/pages/knowledge_implementation.dart';
 import '/pages/category.dart';
 import '/pages/upload_or_camera.dart';
+import '/pages/summary.dart';
 
 // StatefulWidget is used when the UI can change dynamically during runtime
 class ChatbotRedo extends StatefulWidget {
@@ -1032,6 +1033,56 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 12), // Space between rows
+
+                // Summary button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SummaryScreen(
+                          deviceCategory: widget.initialCategory,
+                          extractedComponents: widget.initialDetections,
+                          componentImages: widget.initialComponentImages,
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.summarize, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Summary',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
