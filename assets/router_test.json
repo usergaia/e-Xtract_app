@@ -1,18 +1,18 @@
 { 
     "component_labels": {
-      "Phone board": "Board",
-      "Phone speaker": "Speaker"
+      "Phone board": "pboard",
+      "Phone speaker": "pspeaker"
     },
   
     "issue_component_mapping": {
-      "No dial tone": ["Phone-board"],
-      "Cannot hear caller": ["Phone-speaker"],
-      "Phone not powering on": ["Phone-board"]
+      "No dial tone": ["pboard"],
+      "Cannot hear caller": ["pspeaker"],
+      "Phone not powering on": ["pboard"]
     },
     "nodes": [
       {
         "id": "start",
-        "text": "Would you like to indicate the reason/s you're disposing of the landline, or would you like to head straight to extraction?",
+        "text": "Would you like to indicate the reason/s you're disposing of the laptop, or would you like to head straight to extraction?",
         "options": [
           { "label": "Disposal Cause", "next": "issue" },
           { "label": "Detected Components List", "next": "component_extraction"}
@@ -33,8 +33,8 @@
         "id": "component_extraction",
         "text": "Which part would you like to extract?",
         "options": [
-          { "label": "Phone Board", "next": "extract_Phone-board" },
-          { "label": "Phone Speaker", "next": "extract_Phone-speaker" },
+          { "label": "Phone Board", "next": "extract_pboard" },
+          { "label": "Phone Speaker", "next": "extract_pspeaker" },
           { "label": "Back", "next": "start" },
           { "label": "End", "next": "end" }
         ]
@@ -43,20 +43,12 @@
         "id": "line_issue",
         "text": "Line issues are often related to the phone board. Would you like to extract the phone board?",
         "options": [
-          { "label": "Yes", "next": "extract_Phone-board" },
+          { "label": "Yes", "next": "extract_pboard" },
           { "label": "No", "next": "issue" }
         ]
       },
       {
-        "id": "board_issue",
-        "text": "Would you like to extract or inspect the phone board?",
-        "options": [
-          { "label": "Yes", "next": "extract_Phone-board" },
-          { "label": "No", "next": "issue" }
-        ]
-      },
-      {
-        "id": "extract_Phone-board",
+        "id": "extract_pboard",
         "steps": [
           { 
             "order": 1,
@@ -81,12 +73,12 @@
         "id": "speaker_issue",
         "text": "Would you like to extract or inspect the phone speaker?",
         "options": [
-          { "label": "Yes", "next": "extract_Phone-speaker" },
+          { "label": "Yes", "next": "extract_pspeaker" },
           { "label": "No", "next": "issue" }
         ]
       },
       {
-        "id": "extract_Phone-speaker",
+        "id": "extract_pspeaker",
         "steps": [
           { 
             "order": 1, 

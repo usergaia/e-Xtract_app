@@ -269,7 +269,7 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
     double threshold = 0.25, // Confidence threshold (ignore detections below this)
   }) {
     List<Detection> dets = []; // Temporary list to store detections
-    
+
     // Process each detection from the model output
     for (int i = 0; i < detections[0].length; i++) {
       // Extract this detection's values from nested lists
@@ -297,7 +297,10 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
       
       // Get class name from labels list
       final name = (clsIdx < _labels.length) ? _labels[clsIdx] : 'Unknown';
-      
+
+      // Skip unwanted components
+      if (!_shouldIncludeComponent(name)) continue;
+
       // Create Detection object and add to list
       dets.add(
         Detection(
@@ -407,16 +410,19 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
     List<Detection> detections,
   ) async {
     Map<String, String> componentImages = {}; // Map to store component name -> image path
-    
+
     // Process each detection
     for (var detection in detections) {
+      // Skip unwanted components
+      if (!_shouldIncludeComponent(detection.className)) continue;
+
       // Crop this component from the original image
       final componentPath = await _cropComponentImage(
         imagePath,
         detection.boundingBox,
         detection.className,
       );
-      
+
       if (componentPath.isNotEmpty) {
         // Handle duplicate component names by adding a counter
         String key = detection.className;
@@ -428,7 +434,7 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
         componentImages[key] = componentPath; // Store path in map
       }
     }
-    
+
     return componentImages;
   }
 
@@ -491,6 +497,16 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
         .split('_') // Split by underscore
         .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1)) // Capitalize
         .join(' '); // Join with spaces
+  }
+
+  // Filters Antenna from Landline and Speaker from Router since they share the same TFlite model
+  bool _shouldIncludeComponent(String componentName) {
+    // Return false for components that should be excluded based on category
+    if ((widget.category == 'Landline' && componentName == 'antenna') ||
+        (widget.category == 'Router' && componentName == 'Speaker')) {
+      return false; // Exclude unwanted components
+    }
+    return true; // Include all other components
   }
 
   @override
@@ -626,7 +642,7 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                     : () async {
                         // Don't proceed if still processing
                         if (_processingStatus.contains(true)) return;
-                        
+
                         // Prepare data for chatbot
                         List<String> allDetectedComponents = []; // All component names
                         Map<String, Map<String, String>> allComponentImages = {}; // Component images by image
@@ -635,12 +651,14 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                           if (_allDetections[i].isNotEmpty) {
                             // Collect all detected component names from this image
                             allDetectedComponents.addAll(
-                              _allDetections[i].map((det) => det.className)
+                              _allDetections[i]
+                                .where((detection) => _shouldIncludeComponent(detection.className))
+                                .map((det) => det.className)
                             );
-                            
+
                             // IMPORTANT CHANGE: Always use original images, not processed ones
                             final String imagePath = widget.selectedImages[i].path;
-                                
+
                             // Generate component crops on demand if needed
                             if (_allCroppedComponents[i].isEmpty && _allDetections[i].isNotEmpty) {
                               _allCroppedComponents[i] = await _cropAllDetectedComponents(
@@ -648,12 +666,17 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
                                 _allDetections[i],
                               );
                             }
-                                
+
                             // Store this image's cropped components
                             allComponentImages[imagePath] = _allCroppedComponents[i];
                           }
                         }
-                        
+
+                        // Filter out unwanted components based on category
+                        allDetectedComponents = allDetectedComponents
+                            .where((component) => _shouldIncludeComponent(component))
+                            .toList();
+
                         // Navigate to ChatbotRedo page with detection results
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -728,64 +751,67 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
     if (imageIndex >= _allDetections.length || _allDetections[imageIndex].isEmpty) {
       return Container(); // No detections to show
     }
-    
+
     // LayoutBuilder provides the parent widget constraints
     return LayoutBuilder(
       builder: (context, constraints) {
         // Get container dimensions
         final imageWidth = constraints.maxWidth;
         final imageHeight = constraints.maxHeight;
-        
+
         // Create a stack of positioned bounding boxes
         return Stack(
-          children: _allDetections[imageIndex].map((detection) {
-            // Calculate pixel coordinates from normalized values (0-1)
-            final left = detection.boundingBox.x * imageWidth;
-            final top = detection.boundingBox.y * imageHeight;
-            final width = detection.boundingBox.width * imageWidth;
-            final height = detection.boundingBox.height * imageHeight;
-            
-            // Position the bounding box
-            return Positioned(
-              left: left,
-              top: top,
-              width: width,
-              height: height,
-              child: Container(
-                // Bounding box styling
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.greenAccent, width: 2), // Green border
-                  borderRadius: BorderRadius.circular(4), // Slightly rounded corners
-                ),
-                child: Align(
-                  alignment: Alignment.topLeft,
+          children: _allDetections[imageIndex]
+              .where((detection) => _shouldIncludeComponent(detection.className))
+              .map((detection) {
+                // Calculate pixel coordinates from normalized values (0-1)
+                final left = detection.boundingBox.x * imageWidth;
+                final top = detection.boundingBox.y * imageHeight;
+                final width = detection.boundingBox.width * imageWidth;
+                final height = detection.boundingBox.height * imageHeight;
+
+                // Position the bounding box
+                return Positioned(
+                  left: left,
+                  top: top,
+                  width: width,
+                  height: height,
                   child: Container(
-                    // Label box at top-left of bounding box
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
+                    // Bounding box styling
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.8),
-                      borderRadius: const BorderRadius.only(
-                        bottomRight: Radius.circular(4), // Round only bottom-right corner
-                      ),
+                      border: Border.all(color: Colors.greenAccent, width: 2), // Green border
+                      borderRadius: BorderRadius.circular(4), // Slightly rounded corners
                     ),
-                    child: Text(
-                      // Show component name and confidence percentage
-                      '${_formatClassName(detection.className)} ${(detection.score * 100).toStringAsFixed(1)}%',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Container(
+                        // Label box at top-left of bounding box
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.8),
+                          borderRadius: const BorderRadius.only(
+                            bottomRight: Radius.circular(4), // Round only bottom-right corner
+                          ),
+                        ),
+                        child: Text(
+                          // Show component name and confidence percentage
+                          '${_formatClassName(detection.className)} ${(detection.score * 100).toStringAsFixed(1)}%',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis, // Truncate with ... if too long
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis, // Truncate with ... if too long
                     ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              })
+              .toList(),
         );
       },
     );
@@ -885,10 +911,17 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
     // Build a scrollable list of detected components
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      itemCount: _allDetections[_currentImageIndex].length,
+      itemCount: _allDetections[_currentImageIndex]
+          .where((detection) => _shouldIncludeComponent(detection.className))
+          .toList()
+          .length,
       itemBuilder: (context, index) {
-        // Get current detection
-        final detection = _allDetections[_currentImageIndex][index];
+        final filteredDetections = _allDetections[_currentImageIndex]
+            .where((detection) => _shouldIncludeComponent(detection.className))
+            .toList();
+
+        final detection = filteredDetections[index];
+
         return Card(
           // Card for each component
           color: Colors.white10, // Slight white tint on dark background
