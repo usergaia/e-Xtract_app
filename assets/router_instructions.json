@@ -1,117 +1,111 @@
-{ 
-    "component_labels": {
-      "Phone board": "Board",
-      "Phone speaker": "Speaker"
-    },
-  
-    "issue_component_mapping": {
-      "No dial tone": ["Phone-board"],
-      "Cannot hear caller": ["Phone-speaker"],
-      "Phone not powering on": ["Phone-board"]
-    },
-    "nodes": [
-      {
-        "id": "start",
-        "text": "Would you like to indicate the reason/s you're disposing of the landline, or would you like to head straight to extraction?",
-        "options": [
-          { "label": "Disposal Cause", "next": "issue" },
-          { "label": "Detected Components List", "next": "component_extraction"}
-        ]
-      },
-      {
-        "id": "issue",
-        "text": "What issue or component would you like to address first?",
-        "options": [
-          { "label": "No dial tone", "next": "line_issue" },
-          { "label": "Cannot hear caller", "next": "speaker_issue" },
-          { "label": "Phone not powering on", "next": "board_issue" },
-          { "label": "Back", "next": "start" },
-          { "label": "End", "next": "end" }
-        ]
-      },
-      {
-        "id": "component_extraction",
-        "text": "Which part would you like to extract?",
-        "options": [
-          { "label": "Phone Board", "next": "extract_Phone-board" },
-          { "label": "Phone Speaker", "next": "extract_Phone-speaker" },
-          { "label": "Back", "next": "start" },
-          { "label": "End", "next": "end" }
-        ]
-      },
-      {
-        "id": "line_issue",
-        "text": "Line issues are often related to the phone board. Would you like to extract the phone board?",
-        "options": [
-          { "label": "Yes", "next": "extract_Phone-board" },
-          { "label": "No", "next": "issue" }
-        ]
-      },
-      {
-        "id": "board_issue",
-        "text": "Would you like to extract or inspect the phone board?",
-        "options": [
-          { "label": "Yes", "next": "extract_Phone-board" },
-          { "label": "No", "next": "issue" }
-        ]
-      },
-      {
-        "id": "extract_Phone-board",
-        "steps": [
-          { 
-            "order": 1,
-            "action": "Unscrew the casing of the phone carefully.",
-            "image": "assets/img_assistance/hdd_plug.png"
-          },
-  
-          { 
-          "order": 2, 
-          "action": "Locate and disconnect any wires connected to the phone board.",
-          "image": "assets/img_assistance/hdd_screw.png"
-          },
-  
-          { "order": 3, "action": "Gently lift and remove the phone board from the casing." }
-        ],
-        "options": [
-          { "label": "Component Extraction", "next": "component_extraction" },
-          { "label": "End", "next": "end" }
-        ]
-      },
-      {
-        "id": "speaker_issue",
-        "text": "Would you like to extract or inspect the phone speaker?",
-        "options": [
-          { "label": "Yes", "next": "extract_Phone-speaker" },
-          { "label": "No", "next": "issue" }
-        ]
-      },
-      {
-        "id": "extract_Phone-speaker",
-        "steps": [
-          { 
-            "order": 1, 
-            "action": "Open the phone casing carefully.",
-            "image": "assets/img_assistance/ssd_screw.jpg"
-          },
-  
-          { 
-            "order": 2, 
-            "action": "Locate the speaker attached inside the casing.",
-            "image": "assets/img_assistance/ssd_lift.png"
-          },
-  
-          { "order": 3, "action": "Disconnect the speaker wires and remove the speaker." }
-        ],
-        "options": [
-          { "label": "Component Extraction", "next": "component_extraction" },
-          { "label": "End", "next": "end" }
-        ]
-      },
-      {
-          "id": "end",
-          "text": "All selected components have been processed."
-        }
+{
+  "component_labels": {
+    "Router board": "Board",
+    "Antenna": "antenna"
+  },
+
+  "issue_component_mapping": {
+    "No internet connection": ["Board", "antenna"],
+    "Weak Wi-Fi signal": ["antenna", "Board"],
+    "Router overheating": ["Board"],
+    "Antenna loose or broken": ["antenna"]
+  },
+
+  "nodes": [
+    {
+      "id": "start",
+      "text": "Would you like to indicate the reason/s you're troubleshooting the router, or would you like to head straight to extraction?",
+      "options": [
+        { "label": "Troubleshooting Cause", "next": "issue" },
+        { "label": "Detected Components List", "next": "component_extraction" }
       ]
-  
-  }
-  
+    },
+    {
+      "id": "issue",
+      "text": "What issue or component would you like to address first?",
+      "options": [
+        { "label": "No internet connection", "next": "internet_issue" },
+        { "label": "Weak Wi-Fi signal", "next": "wifi_issue" },
+        { "label": "Router overheating", "next": "overheating_issue" },
+        { "label": "Antenna loose or broken", "next": "antenna_issue" },
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "component_extraction",
+      "text": "Which part would you like to extract?",
+      "options": [
+        { "label": "Router Board", "next": "extract_board" },
+        { "label": "Antenna", "next": "extract_antenna" },
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "internet_issue",
+      "text": "Internet issues are often related to the router Board or antenna. Would you like to inspect or extract these components?",
+      "options": [
+        { "label": "Inspect Router Board", "next": "extract_board" },
+        { "label": "Inspect Antenna", "next": "extract_antenna" },
+        { "label": "Back", "next": "issue" }
+      ]
+    },
+    {
+      "id": "wifi_issue",
+      "text": "Wi-Fi signal issues are often related to the antenna. Would you like to inspect or extract the antenna?",
+      "options": [
+        { "label": "Yes", "next": "extract_antenna" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "overheating_issue",
+      "text": "Overheating issues are often related to the router Board. Would you like to inspect or extract the router Board?",
+      "options": [
+        { "label": "Yes", "next": "extract_board" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "antenna_issue",
+      "text": "Would you like to inspect or extract the antenna?",
+      "options": [
+        { "label": "Yes", "next": "extract_antenna" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "extract_board",
+      "steps": [
+        { "order": 1, "action": "Unscrew the casing screws and open the router carefully.", "image": "assets/img_assistance/hdd_plug.png" },
+        { "order": 2, "action": "Locate the router Board inside the casing.", "image": "assets/img_assistance/hdd_screw.png" },
+        { "order": 3, "action": "Disconnect all cables connected to the router Board (power, Ethernet, antenna wires).", "image": "assets/img_assistance/ssd_screw.jpg" },
+        { "order": 4, "action": "Unscrew the router Board from its mounting points.", "image": "assets/img_assistance/ssd_lift.png" },
+        { "order": 5, "action": "Carefully lift the router Board out of the casing.", "image": "assets/img_assistance/cpu_cooler_socket.png" }
+      ],
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_antenna",
+      "steps": [
+        { "order": 1, "action": "If the antenna is external, grip the base of the antenna where it meets the router.", "image": "assets/img_assistance/intel_pins.jpg" },
+        { "order": 2, "action": "Twist counter-clockwise to unscrew and detach the antenna.", "image": "assets/img_assistance/amd_screw.png" },
+        { "order": 3, "action": "If the antenna is internal, unscrew the casing screws and open the router carefully.", "image": "assets/img_assistance/other_lever.png" },
+        { "order": 4, "action": "Locate the internal antenna (typically a small wire or PCB strip).", "image": "assets/img_assistance/fan_socket.png" },
+        { "order": 5, "action": "Disconnect the antenna cable from the router Board or unclip it if applicable.", "image": "assets/img_assistance/cpu_lever.png" }
+      ],
+      "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "end",
+      "text": "All selected components have been processed."
+    }
+  ]
+}

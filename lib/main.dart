@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/pages/home.dart';
+import 'pages/splash_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -12,7 +12,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage() // This sets the HomePage fuction from home.dart as the home page of the app.
+      home: AnimatedSplashScreenWidget(),  // This sets the HomePage fuction from home.dart as the home page of the app.
     );
   }
 }

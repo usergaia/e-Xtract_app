@@ -16,16 +16,24 @@ dependencies:
   path_provider: ^2.1.1  # For file paths
   path: ^1.8.3  # For path manipulation
   google_fonts: ^6.1.0
+  lottie:
+  animated_splash_screen:
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
   flutter_lints: ^5.0.0
+
+flutter_icons:
+  android: true
+  image_path: "assets/guides/default.png"
 
 flutter:
   uses-material-design: true
   assets:
 
+    - assets/splash.json
     # Guide images
     - assets/guides/open_phone.png #phone 
     - assets/guides/dark_phone.png
