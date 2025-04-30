@@ -11,12 +11,14 @@ import '/pages/guide_images.dart'; // Importing guide images for the selected ca
 class UploadPage extends StatefulWidget {
   final String category; // Declares a final variable to store the category passed from previous screen (category.dart)
   final List<File>? existingImages; // Add this parameter
+  final String? sessionId;
 
   const UploadPage({ // Constructor for UploadPage that requires a category
     Key? key, // Optional key to identify the widget uniquely. Key helps Flutter uniquely identify widgets during rebuilds(e.g., during hot reload ).
               // It allows Flutter to maintain state when the widget is moved or rebuilt.
     required this.category, // Requires a category to be passed when creating UploadPage
     this.existingImages, // Optional parameter for existing images
+    this.sessionId,
   }) : super(key: key); // Passes the key to the superclass constructor
 
   @override 
@@ -264,6 +266,7 @@ class _UploadPageState extends State<UploadPage> {
                       builder: (context) => DetectionPage( // Passes required data
                         category: widget.category,
                         selectedImages: _selectedImages,
+                        sessionId: widget.sessionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
                       ),
                     ),
                   );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/pages/category.dart';
+import '/pages/session_list.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatelessWidget {
@@ -91,6 +92,21 @@ class HomePage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => const Category(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      SizedBox(height: screenHeight * 0.015),
+                      _buildButton(
+                        context: context,
+                        text: 'Saved Sessions',
+                        icon: Icons.history,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SessionsListPage(),
                             ),
                           );
                         },

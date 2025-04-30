@@ -15,6 +15,7 @@ class DetectionPage extends StatefulWidget {
   // Define required parameters that must be provided when creating this widget
   final String category; // The category of device being analyzed (e.g., 'Desktop')
   final List<File> selectedImages; // List of image files selected by the user
+  final String sessionId;
 
   // Constructor that requires both parameters
   // Key is an identifier that Flutter uses to preserve state when widgets are rebuilt
@@ -22,6 +23,7 @@ class DetectionPage extends StatefulWidget {
     Key? key, // '?' means this parameter is optional
     required this.category, // 'required' keyword means this parameter must be provided
     required this.selectedImages,
+    required this.sessionId,
   }) : super(key: key); // Pass the key to the parent StatefulWidget class
 
   @override
@@ -620,59 +622,52 @@ class _DetectionPageState extends State<DetectionPage> with SingleTickerProvider
               // Continue button
               GestureDetector(
                 // Only allow tap if not processing and we have detections
-                onTap: (_processingStatus.contains(true) || 
-                        _allDetections[_currentImageIndex].isEmpty) 
-                    ? null 
-                    : () async {
-                        // Don't proceed if still processing
-                        if (_processingStatus.contains(true)) return;
-                        
-                        // Prepare data for chatbot
-                        List<String> allDetectedComponents = []; // All component names
-                        Map<String, Map<String, String>> allComponentImages = {}; // Component images by image
-                        
-                        for (int i = 0; i < widget.selectedImages.length; i++) {
-                          if (_allDetections[i].isNotEmpty) {
-                            // Collect all detected component names from this image
-                            allDetectedComponents.addAll(
-                              _allDetections[i].map((det) => det.className)
-                            );
-                            
-                            // IMPORTANT CHANGE: Always use original images, not processed ones
-                            final String imagePath = widget.selectedImages[i].path;
-                                
-                            // Generate component crops on demand if needed
-                            if (_allCroppedComponents[i].isEmpty && _allDetections[i].isNotEmpty) {
-                              _allCroppedComponents[i] = await _cropAllDetectedComponents(
-                                widget.selectedImages[i].path,
-                                _allDetections[i],
-                              );
-                            }
-                                
-                            // Store this image's cropped components
-                            allComponentImages[imagePath] = _allCroppedComponents[i];
-                          }
-                        }
-                        
-                        // Navigate to ChatbotRedo page with detection results
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ChatbotRedo(
-                              // Pass data to ChatbotRedo
-                              initialCategory: widget.category,
-                              initialImagePath: widget.selectedImages.isNotEmpty 
-                                  ? widget.selectedImages[0].path
-                                  : null,
-                              initialDetections: allDetectedComponents,
-                              initialComponentImages: allComponentImages,
-                              initialBatch: List<int>.generate(
-                                widget.selectedImages.length, 
-                                (index) => index
-                              ),
-                            ),
-                          ),
+                onTap: () async {
+                  // Don't proceed if still processing
+                  if (_processingStatus.contains(true)) return;
+
+                  // Prepare data for chatbot
+                  List<String> allDetectedComponents = []; // All component names
+                  Map<String, Map<String, String>> allComponentImages = {}; // Component images by image
+
+                  for (int i = 0; i < widget.selectedImages.length; i++) {
+                    if (_allDetections[i].isNotEmpty) {
+                      // Collect all detected component names from this image
+                      allDetectedComponents.addAll(
+                        _allDetections[i].map((det) => det.className),
+                      );
+
+                      // IMPORTANT CHANGE: Always use original images, not processed ones
+                      final String imagePath = widget.selectedImages[i].path;
+
+                      // Generate component crops on demand if needed
+                      if (_allCroppedComponents[i].isEmpty && _allDetections[i].isNotEmpty) {
+                        _allCroppedComponents[i] = await _cropAllDetectedComponents(
+                          widget.selectedImages[i].path,
+                          _allDetections[i],
                         );
-                      },
+                      }
+
+                      // Store this image's cropped components
+                      allComponentImages[imagePath] = _allCroppedComponents[i];
+                    }
+                  }
+
+                  // Navigate to ChatbotRedo page with detection results
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChatbotRedo(
+                        initialCategory: widget.category,
+                        initialImagePath: widget.selectedImages.isNotEmpty
+                            ? widget.selectedImages[0].path
+                            : null,
+                        initialDetections: allDetectedComponents,
+                        initialComponentImages: allComponentImages,
+                        initialBatch: [widget.sessionId], // Use the same session ID or category
+                      ),
+                    ),
+                  );
+                },
                 child: Container(
                   // Continue button styling
                   width: double.infinity, // Full width

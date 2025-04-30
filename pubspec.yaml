@@ -16,6 +16,7 @@ dependencies:
   path_provider: ^2.1.1  # For file paths
   path: ^1.8.3  # For path manipulation
   google_fonts: ^6.1.0
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:

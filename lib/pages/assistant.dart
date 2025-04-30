@@ -5,6 +5,8 @@ import '/pages/base.dart';
 import '/pages/knowledge_implementation.dart';
 import '/pages/category.dart';
 import '/pages/upload_or_camera.dart';
+import '/pages/session.dart'; // For SavedSession
+import '/pages/session_repository.dart'; // For SessionRepository
 
 // StatefulWidget is used when the UI can change dynamically during runtime
 class ChatbotRedo extends StatefulWidget {
@@ -13,7 +15,7 @@ class ChatbotRedo extends StatefulWidget {
   final String? initialImagePath; // Optional main image path
   final List<String> initialDetections; // List of detected components
   final Map<String, Map<String, String>> initialComponentImages; // Nested map of image paths for components
-  final List<int> initialBatch; // Batch identifier for processing
+  final List<dynamic> initialBatch; // Batch identifier for processing
 
   // Constructor with required and optional parameters
   const ChatbotRedo({
@@ -51,12 +53,19 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
   Map<String, String>? _componentLabelMapping; // Maps UI labels to component internal names
   Map<String, dynamic>? _issueComponentMapping; // Maps issues to related components
 
+  String? _sessionId; // Tracks the session
+
   // Lifecycle method called when widget is first created
   @override
   void initState() {
-    super.initState(); // Always call parent method first
-    _loadRuleBase(); // Load the decision tree rules
-    _initializeComponentImagePaths(); // Setup quick access to images
+    super.initState();
+    _loadRuleBase();
+    _initializeComponentImagePaths();
+    
+    // Handle both string and integer batch IDs
+    _sessionId = widget.initialBatch.isNotEmpty 
+      ? widget.initialBatch[0].toString()
+      : DateTime.now().millisecondsSinceEpoch.toString();
   }
 
   // Creates a flattened map for quick component image lookup
@@ -115,30 +124,47 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
     try {
       print("Loading rule base for category: ${widget.initialCategory}");
       
-      // KnowledgeImplementation handles loading JSON data and parsing it
       final ruleBase = await KnowledgeImplementation.loadRuleBase(widget.initialCategory);
-      
-      // Extract additional configuration from the rule base
       _parseAdditionalRuleBaseStructure(ruleBase);
       
-      // Debug output 
       print("Rule base loaded: ${ruleBase.nodes.length} nodes");
-      if (ruleBase.startNode != null) {
-        print("Start node found: ${ruleBase.startNode!.id}");
-      } else {
-        print("ERROR: Start node not found!");
+      
+      // Check if we're resuming a session and have a saved node ID
+      String? startingNodeId = 'start';
+      if (widget.initialBatch.length == 1 && widget.initialBatch[0] is String) {
+        // This is an existing session - try to find its saved position
+        final repository = SessionRepository();
+        final sessions = await repository.getSavedSessions();
+        final session = sessions.firstWhere(
+          (s) => s.id == widget.initialBatch[0],
+          orElse: () => SavedSession(
+            id: '',
+            deviceCategory: '',
+            savedAt: DateTime.now(),
+            detectedComponents: [],
+            componentImages: {},
+          ),
+        );
+        
+        if (session.currentNodeId != null) {
+          startingNodeId = session.currentNodeId;
+          print("Resuming session from node: $startingNodeId");
+        }
       }
       
-      // Update UI state - triggers a rebuild of the widget
+      // Find the starting node
+      Node? startingNode = ruleBase.findNodeById(startingNodeId ?? 'start');
+      
       setState(() {
         _ruleBase = ruleBase;
-        _currentNode = ruleBase.startNode; // Start from the first node
-        _isLoading = false; // Stop showing loading indicator
+        _currentNode = startingNode ?? ruleBase.startNode;
+        _isLoading = false;
+        _updateCurrentComponentFromNodeId(_currentNode?.id ?? '');
       });
     } catch (e) {
       print("Error loading rule base: $e");
       setState(() {
-        _isLoading = false; // Stop loading indicator even on error
+        _isLoading = false;
       });
     }
   }
@@ -923,6 +949,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
             ),
             child: Column(
               children: [
+                // Row for Change Device and Add Images buttons
                 Row(
                   children: [
                     Expanded(
@@ -947,7 +974,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 12), // Space between the two buttons
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
@@ -966,6 +993,8 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                               builder: (context) => UploadPage(
                                 category: widget.initialCategory,
                                 existingImages: existingImages,
+                                sessionId: _sessionId, // Pass the current session ID
+
                               ),
                             ),
                           );
@@ -983,6 +1012,61 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 12), // Space between the row and Save Session button
+                // Save Session button
+                SizedBox(
+                  width: double.infinity, // Makes the button take the full width
+                  child: ElevatedButton.icon(
+                    // Update the save session button onPressed handler:
+                    onPressed: () async {
+                      final repository = SessionRepository();
+                      
+                      // Create or update the session
+                      final session = SavedSession(
+                        id: _sessionId!,
+                        deviceCategory: widget.initialCategory,
+                        mainImagePath: widget.initialImagePath,
+                        savedAt: DateTime.now(),
+                        detectedComponents: widget.initialDetections,
+                        componentImages: widget.initialComponentImages,
+                        currentNodeId: _currentNode?.id, // Save the current node ID
+                      );
+
+                      // Check if this session already exists
+                      final existingSessions = await repository.getSavedSessions();
+                      final existingSessionIndex = existingSessions.indexWhere((s) => s.id == _sessionId);
+                      
+                      if (existingSessionIndex != -1) {
+                        // Update existing session
+                        existingSessions[existingSessionIndex] = session;
+                      } else {
+                        // Add new session
+                        existingSessions.add(session);
+                      }
+
+                      // Save all sessions
+                      final jsonList = existingSessions.map((s) => s.toJson()).toList();
+                      await repository.saveAllSessions(jsonList);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Session saved successfully'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.save),
+                    label: Text('Save Session'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
