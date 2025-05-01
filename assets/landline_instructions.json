@@ -1,0 +1,117 @@
+{ 
+    "component_labels": {
+      "Phone board": "Board",
+      "Phone speaker": "Speaker"
+    },
+  
+    "issue_component_mapping": {
+      "No dial tone": ["Board"],
+      "Cannot hear caller": ["Speaker"],
+      "Phone not powering on": ["Board"]
+    },
+    "nodes": [
+      {
+        "id": "start",
+        "text": "Would you like to indicate the reason/s you're disposing of the landline, or would you like to head straight to extraction?",
+        "options": [
+          { "label": "Disposal Cause", "next": "issue" },
+          { "label": "Detected Components List", "next": "component_extraction"}
+        ]
+      },
+      {
+        "id": "issue",
+        "text": "What issue or component would you like to address first?",
+        "options": [
+          { "label": "No dial tone", "next": "line_issue" },
+          { "label": "Cannot hear caller", "next": "speaker_issue" },
+          { "label": "Phone not powering on", "next": "board_issue" },
+          { "label": "Back", "next": "start" },
+          { "label": "End", "next": "end" }
+        ]
+      },
+      {
+        "id": "component_extraction",
+        "text": "Which part would you like to extract?",
+        "options": [
+          { "label": "Phone Board", "next": "extract_Board" },
+          { "label": "Phone Speaker", "next": "extract_Speaker" },
+          { "label": "Back", "next": "start" },
+          { "label": "End", "next": "end" }
+        ]
+      },
+      {
+        "id": "line_issue",
+        "text": "Line issues are often related to the phone board. Would you like to extract the phone board?",
+        "options": [
+          { "label": "Yes", "next": "extract_Board" },
+          { "label": "No", "next": "issue" }
+        ]
+      },
+      {
+        "id": "board_issue",
+        "text": "Would you like to extract or inspect the phone board?",
+        "options": [
+          { "label": "Yes", "next": "extract_Board" },
+          { "label": "No", "next": "issue" }
+        ]
+      },
+      {
+        "id": "extract_Board",
+        "steps": [
+          { 
+            "order": 1,
+            "action": "Unscrew the casing of the phone carefully.",
+            "image": "assets/img_assistance/hdd_plug.png"
+          },
+  
+          { 
+          "order": 2, 
+          "action": "Locate and disconnect any wires connected to the phone board.",
+          "image": "assets/img_assistance/hdd_screw.png"
+          },
+  
+          { "order": 3, "action": "Gently lift and remove the phone board from the casing." }
+        ],
+        "options": [
+          { "label": "Component Extraction", "next": "component_extraction" },
+          { "label": "End", "next": "end" }
+        ]
+      },
+      {
+        "id": "speaker_issue",
+        "text": "Would you like to extract or inspect the phone speaker?",
+        "options": [
+          { "label": "Yes", "next": "extract_Speaker" },
+          { "label": "No", "next": "issue" }
+        ]
+      },
+      {
+        "id": "extract_Speaker",
+        "steps": [
+          { 
+            "order": 1, 
+            "action": "Open the phone casing carefully.",
+            "image": "assets/img_assistance/ssd_screw.jpg"
+          },
+  
+          { 
+            "order": 2, 
+            "action": "Locate the speaker attached inside the casing.",
+            "image": "assets/img_assistance/ssd_lift.png"
+          },
+  
+          { "order": 3, "action": "Disconnect the speaker wires and remove the speaker." }
+        ],
+        "options": [
+          { "label": "Component Extraction", "next": "component_extraction" },
+          { "label": "End", "next": "end" }
+        ]
+      },
+      {
+          "id": "end",
+          "text": "All selected components have been processed."
+        }
+      ]
+  
+  }
+  
