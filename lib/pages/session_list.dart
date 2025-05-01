@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'session.dart';
 import 'session_repository.dart';
 import 'base.dart';
@@ -28,6 +29,18 @@ class _SessionsListPageState extends State<SessionsListPage> {
     setState(() {
       _sessionsFuture = _repository.getSavedSessions();
     });
+  }
+
+  String _formatDate(DateTime date) {
+    return timeago.format(date, locale: 'en');
+  }
+
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDay(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   @override
@@ -75,9 +88,21 @@ class _SessionsListPageState extends State<SessionsListPage> {
                     session.deviceCategory,
                     style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(
-                    '${session.detectedComponents.length} components',
-                    style: GoogleFonts.montserrat(),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${session.detectedComponents.length} components',
+                        style: GoogleFonts.montserrat(),
+                      ),
+                      Text(
+                        _formatDate(session.savedAt),
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
@@ -95,11 +120,10 @@ class _SessionsListPageState extends State<SessionsListPage> {
                           initialImagePath: session.mainImagePath,
                           initialDetections: session.detectedComponents,
                           initialComponentImages: session.componentImages,
-                          initialBatch: [session.id], // Pass the session ID instead of timestamp
+                          initialBatch: [session.id],
                         ),
                       ),
                     ).then((_) {
-                      // Refresh the list when returning from the session
                       _refreshSessions();
                     });
                   },

@@ -5,8 +5,8 @@ import '/pages/base.dart';
 import '/pages/knowledge_implementation.dart';
 import '/pages/category.dart';
 import '/pages/upload_or_camera.dart';
-import '/pages/session.dart'; // For SavedSession
-import '/pages/session_repository.dart'; // For SessionRepository
+import '/pages/session.dart';
+import '/pages/session_repository.dart'; 
 
 // StatefulWidget is used when the UI can change dynamically during runtime
 class ChatbotRedo extends StatefulWidget {
