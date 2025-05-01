@@ -1,20 +1,7 @@
 {
   "component_labels": {
-    "Graphics card": "gpu",
-    "GPU": "gpu",
-    "Cooling": "cooler",
-    "fan": "cooler",
-    "HDD": "hdd",
-    "SSD": "ssd",
-    "Power supply": "psu",
-    "PSU": "psu",
-    "Motherboard": "mboard",
-    "RAM": "ram",
-    "Memory": "ram",
-    "CPU": "cpu",
-    "BIOS": "cmos",
-    "CMOS": "cmos",
-    "Case": "case"
+    "Antenna": "antenna",
+    "Router board": "Board"
   },
 
   "issue_component_mapping": {

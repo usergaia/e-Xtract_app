@@ -18,16 +18,24 @@ dependencies:
   google_fonts: ^6.1.0
   flutter_secure_storage: ^9.2.4
   timeago: ^3.2.0 # For displaying time in a human-readable format
+  lottie: ^2.3.2 # For Lottie animations
+  animated_splash_screen: ^1.3.0 # For splash screen animations
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
   flutter_lints: ^5.0.0
+
+flutter_icons:
+  android: true
+  image_path: "assets/guides/default.png"
 
 flutter:
   uses-material-design: true
   assets:
 
+    - assets/splash.json
     # Guide images
     - assets/guides/open_phone.png #phone 
     - assets/guides/dark_phone.png

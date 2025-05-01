@@ -1,72 +1,105 @@
 {
+  "component_labels": {
+    "Router board": "Board",
+    "Antenna": "antenna"
+  },
+
+  "issue_component_mapping": {
+    "No internet connection": ["Board", "antenna"],
+    "Weak Wi-Fi signal": ["antenna", "Board"],
+    "Router overheating": ["Board"],
+    "Antenna loose or broken": ["antenna"]
+  },
+
   "nodes": [
     {
       "id": "start",
-      "text": "What part of the router are you working on?",
+      "text": "Would you like to indicate the reason/s you're troubleshooting the router, or would you like to head straight to extraction?",
       "options": [
-        { "label": "Antenna", "next": "antenna_flow" },
-        { "label": "Router Board", "next": "router_board_flow" }
+        { "label": "Troubleshooting Cause", "next": "issue" },
+        { "label": "Detected Components List", "next": "component_extraction" }
       ]
     },
     {
-      "id": "antenna_flow",
-      "text": "Is the antenna external (screw-in) or internal (wired)?",
+      "id": "issue",
+      "text": "What issue or component would you like to address first?",
       "options": [
-        { "label": "External (screw-on antenna)", "next": "remove_external_antenna" },
-        { "label": "Internal (fixed inside case)", "next": "remove_internal_antenna" }
-      ]
-    },
-    {
-      "id": "remove_external_antenna",
-      "steps": [
-        { "order": 1, "action": "Grip the base of the antenna where it meets the router." },
-        { "order": 2, "action": "Twist counter-clockwise to unscrew and detach the antenna." }
-      ],
-      "options": [
-        { "label": "Continue to Router Board", "next": "router_board_flow" },
+        { "label": "No internet connection", "next": "internet_issue" },
+        { "label": "Weak Wi-Fi signal", "next": "wifi_issue" },
+        { "label": "Router overheating", "next": "overheating_issue" },
+        { "label": "Antenna loose or broken", "next": "antenna_issue" },
+        { "label": "Back", "next": "start" },
         { "label": "End", "next": "end" }
       ]
     },
     {
-      "id": "remove_internal_antenna",
-      "steps": [
-        { "order": 1, "action": "Unscrew the casing screws and open the router carefully." },
-        { "order": 2, "action": "Locate the internal antenna (typically a small wire or PCB strip)." },
-        { "order": 3, "action": "Disconnect the antenna cable from the router board or unclip it if applicable." }
-      ],
+      "id": "component_extraction",
+      "text": "Which part would you like to extract?",
       "options": [
-        { "label": "Continue to Router Board", "next": "router_board_flow" },
+        { "label": "Router Board", "next": "extract_board" },
+        { "label": "Antenna", "next": "extract_antenna" },
+        { "label": "Back", "next": "start" },
         { "label": "End", "next": "end" }
       ]
     },
     {
-      "id": "router_board_flow",
-      "text": "Is the router board immediately accessible after opening the case?",
+      "id": "internet_issue",
+      "text": "Internet issues are often related to the router Board or antenna. Would you like to inspect or extract these components?",
       "options": [
-        { "label": "Yes", "next": "remove_board_simple" },
-        { "label": "No, additional parts are blocking it.", "next": "remove_board_obstructed" }
+        { "label": "Inspect Router Board", "next": "extract_board" },
+        { "label": "Inspect Antenna", "next": "extract_antenna" },
+        { "label": "Back", "next": "issue" }
       ]
     },
     {
-      "id": "remove_board_simple",
+      "id": "wifi_issue",
+      "text": "Wi-Fi signal issues are often related to the antenna. Would you like to inspect or extract the antenna?",
+      "options": [
+        { "label": "Yes", "next": "extract_antenna" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "overheating_issue",
+      "text": "Overheating issues are often related to the router Board. Would you like to inspect or extract the router Board?",
+      "options": [
+        { "label": "Yes", "next": "extract_board" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "antenna_issue",
+      "text": "Would you like to inspect or extract the antenna?",
+      "options": [
+        { "label": "Yes", "next": "extract_antenna" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "extract_board",
       "steps": [
-        { "order": 1, "action": "Unscrew any mounting screws securing the board." },
-        { "order": 2, "action": "Disconnect any attached cables (power, Ethernet ports, antennas)." },
-        { "order": 3, "action": "Lift the board carefully out of the housing." }
+        { "order": 1, "action": "Unscrew the casing screws and open the router carefully.", "image": "assets/img_assistance/hdd_plug.png" },
+        { "order": 2, "action": "Locate the router Board inside the casing.", "image": "assets/img_assistance/hdd_screw.png" },
+        { "order": 3, "action": "Disconnect all cables connected to the router Board (power, Ethernet, antenna wires).", "image": "assets/img_assistance/ssd_screw.jpg" },
+        { "order": 4, "action": "Unscrew the router Board from its mounting points.", "image": "assets/img_assistance/ssd_lift.png" },
+        { "order": 5, "action": "Carefully lift the router Board out of the casing.", "image": "assets/img_assistance/cpu_cooler_socket.png" }
       ],
       "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
         { "label": "End", "next": "end" }
       ]
     },
     {
-      "id": "remove_board_obstructed",
+      "id": "extract_antenna",
       "steps": [
-        { "order": 1, "action": "Remove shielding plates, heatsinks, or plastic brackets covering the board." },
-        { "order": 2, "action": "Unscrew the board's mounting screws." },
-        { "order": 3, "action": "Detach all connected cables and antenna wires carefully." },
-        { "order": 4, "action": "Extract the board slowly to avoid damaging small ports." }
+        { "order": 1, "action": "If the antenna is external, grip the base of the antenna where it meets the router.", "image": "assets/img_assistance/intel_pins.jpg" },
+        { "order": 2, "action": "Twist counter-clockwise to unscrew and detach the antenna.", "image": "assets/img_assistance/amd_screw.png" },
+        { "order": 3, "action": "If the antenna is internal, unscrew the casing screws and open the router carefully.", "image": "assets/img_assistance/other_lever.png" },
+        { "order": 4, "action": "Locate the internal antenna (typically a small wire or PCB strip).", "image": "assets/img_assistance/fan_socket.png" },
+        { "order": 5, "action": "Disconnect the antenna cable from the router Board or unclip it if applicable.", "image": "assets/img_assistance/cpu_lever.png" }
       ],
       "options": [
+        { "label": "Component Extraction", "next": "component_extraction" },
         { "label": "End", "next": "end" }
       ]
     },
@@ -74,9 +107,5 @@
       "id": "end",
       "text": "All selected components have been processed."
     }
-  ],
-  "component_labels": {
-    "Router Board": "router-board",
-    "Antenna": "antenna"
-  }
+  ]
 }

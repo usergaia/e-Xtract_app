@@ -178,6 +178,8 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
       // Extract various configuration maps from the JSON
       _componentMapping = rawData['component_mapping'];
 
+      
+
       if (rawData.containsKey('issue_component_mapping')) {
         _issueComponentMapping = Map<String, dynamic>.from(rawData['issue_component_mapping']);
       }
