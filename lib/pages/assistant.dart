@@ -7,6 +7,7 @@ import '/pages/category.dart';
 import '/pages/upload_or_camera.dart';
 import '/pages/session.dart';
 import '/pages/session_repository.dart'; 
+import '/pages/summary.dart';
 
 // StatefulWidget is used when the UI can change dynamically during runtime
 class ChatbotRedo extends StatefulWidget {
@@ -940,7 +941,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
           // Navigation action buttons (always visible)
           const SizedBox(height: 24),
           
-          // Device change and Add images buttons
+          // Navigation action buttons container
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -952,8 +953,9 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                 // Row for Change Device and Add Images buttons
                 Row(
                   children: [
+                    // Change Device button with gradient
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -962,21 +964,46 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.change_circle),
-                        label: const Text('Change Device'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.change_circle, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Change Device',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12), // Space between the two buttons
+                    
+                    // Add Images button
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: ElevatedButton(
                         onPressed: () {
                           // Extract all component image paths into a list of File objects
                           List<File> existingImages = [];
@@ -994,31 +1021,103 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                                 category: widget.initialCategory,
                                 existingImages: existingImages,
                                 sessionId: _sessionId, // Pass the current session ID
-
                               ),
                             ),
                           );
                         },
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Add Images'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF43A047),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.add_photo_alternate, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Add Images',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12), // Space between the row and Save Session button
+                const SizedBox(height: 12), // Space between the row and Summary button
+                
+                // Summary button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SummaryScreen(
+                          deviceCategory: widget.initialCategory,
+                          extractedComponents: widget.initialDetections,
+                          componentImages: widget.initialComponentImages,
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.summarize, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Summary',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12), // Space between Summary and Save Session button
+                
                 // Save Session button
                 SizedBox(
-                  width: double.infinity, // Makes the button take the full width
+                  width: double.infinity,
                   child: ElevatedButton.icon(
-                    // Update the save session button onPressed handler:
                     onPressed: () async {
                       final repository = SessionRepository();
                       
@@ -1056,14 +1155,20 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                         ),
                       );
                     },
-                    icon: Icon(Icons.save),
-                    label: Text('Save Session'),
+                    icon: const Icon(Icons.save, color: Colors.white),
+                    label: Text(
+                      'Save Session',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xFF4285F4), // Blue color
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                   ),
