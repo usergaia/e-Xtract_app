@@ -74,7 +74,8 @@ flutter:
     - assets/guides/add_img.png #extra
     - assets/guides/default.png 
 
-    - assets/img_assistance/ssd_screw.jpg
+    # Assistance images
+    - assets/img_assistance/ssd_screw.jpg #desktop  
     - assets/img_assistance/ssd_lift.png
     - assets/img_assistance/cpu_cooler_socket.png
     - assets/img_assistance/hdd_plug.png
@@ -85,6 +86,16 @@ flutter:
     - assets/img_assistance/other_lever.png
     - assets/img_assistance/fan_socket.png
     - assets/img_assistance/cpu_lever.png
+    - assets/img_assistance/gpu_screw.png
+    - assets/img_assistance/gpu_cable.png
+    - assets/img_assistance/gpu_lock.png
+    - assets/img_assistance/mboard_screws.png
+    - assets/img_assistance/psu_screw.png
+    - assets/img_assistance/psu_mobo_cable.jpg
+    - assets/img_assistance/psu_cable.png
+    - assets/img_assistance/ram_pull.png
+    - assets/img_assistance/ram_pull_down.png
+    - assets/img_assistance/mobo_cable_clip.png
 
     # Knowledge-base
     - assets/desktop_instructions.json

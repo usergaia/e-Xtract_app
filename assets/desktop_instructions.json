@@ -268,9 +268,24 @@
     {
       "id": "extract_gpu",
       "steps": [
-        { "order": 1, "action": "Unscrew the GPU from the expansion slot bracket." },
-        { "order": 2, "action": "Unlock PCIe latch if present." },
-        { "order": 3, "action": "Gently pull the GPU out of the slot." }
+
+        { 
+          "order": 1, 
+          "action": "Push down on the lock clip located on the PCIe cable. Unplug the PCIe cable by gently pulling it out.", 
+          "image": "assets/img_assistance/gpu_cable.png"
+        },
+
+        { 
+          "order": 2, 
+          "action": "Remove the small mounting screw(s) that connect the GPU onto the back of the PC case.", 
+          "image": "assets/img_assistance/gpu_screw.png"
+        },
+        { 
+          "order": 3, 
+          "action": "Push down on the lock tab located beside the GPU slot on the motherboard. Screwdriver was only used to point at the lock tab. Use your fingers to push down on the lock tab.",
+          "image": "assets/img_assistance/gpu_lock.png"
+        },
+        { "order": 4, "action": "Remove the graphics card by gently pulling it out from the GPU slot. Use both hands for extra caution." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -288,9 +303,18 @@
     {
       "id": "extract_mboard",
       "steps": [
-        { "order": 1, "action": "Disconnect all cables and remove expansion cards." },
-        { "order": 2, "action": "Unscrew the motherboard from the case standoffs." },
-        { "order": 3, "action": "Lift motherboard out carefully without flexing it." }
+        { "order": 1, "action": "Before proceeding, make sure all components are extracted before extracting the motherboard." },
+        { 
+          "order": 2, 
+          "action": "Begin to disconnect all cables from the motherboard. Some of the cables will have clips that needs to be pushed before you can remove them from the motherboard.",
+          "image": "assets/img_assistance/mobo_cable_clip.png"
+        },
+        { 
+          "order": 3, 
+          "action": "Remove all the screws from the motherboard. Be sure to have your computer on its side, so that once the screws are out the motherboard won't fall out and be damaged.", 
+          "image": "assets/img_assistance/mboard_screws.png"
+        },
+        { "order": 4, "action": "Once all screws are out, gently lift the motherboard out of the case. Be careful not to bend or flex it too much." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
@@ -308,8 +332,19 @@
     {
       "id": "extract_psu",
       "steps": [
-        { "order": 1, "action": "Disconnect all PSU cables from components." },
-        { "order": 2, "action": "Unscrew the PSU from the case." },
+        { 
+          "order": 1, 
+          "action": "Unscrew Phillips screws from back of the desktop PC.", 
+          "image": "assets/img_assistance/psu_screw.png"
+        },
+        { 
+          "order": 2, 
+          "action": "Unplug all attached cables from the Power Supply, then unplug the cable attached to the Motherboard inside the PC.", 
+          "images": [
+            "assets/img_assistance/psu_cable.png",
+            "assets/img_assistance/psu_mobo_cable.jpg"
+          ]
+        },
         { "order": 3, "action": "Slide the PSU out from the mounting bay." }
       ],
       "options": [
@@ -328,8 +363,17 @@
     {
       "id": "extract_ram",
       "steps": [
-        { "order": 1, "action": "Push down the side clips on the RAM slot." },
-        { "order": 2, "action": "Gently pull the RAM module straight out." }
+        { 
+          "order": 1, 
+          "action": "Each motherboard is different. Some has two pull tabs on each side while some has one pull tab instead. ", 
+          "image": "assets/img_assistance/ram_pull.png"
+        },
+        { 
+          "order": 2, 
+          "action": "After identifying how many pull tabs are there, push down on them to release the RAM stick(s).", 
+          "image": "assets/img_assistance/ram_pull_down.png"
+        },
+        { "order": 2, "action": "Once the pull tabs are released, remove the RAM from the RAM slots and set to the side. Repeat the steps if you have multiple RAM sticks." }
       ],
       "options": [
         { "label": "Component Extraction", "next": "component_extraction" },
