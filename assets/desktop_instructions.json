@@ -28,6 +28,54 @@
     "Power supply (PSU) failure": ["psu"],
     "RAM (Memory) issues": ["ram"]
   },
+
+  "component_values": {
+    "gpu": {
+      "price": 15.00,
+      "notes": "High value component, check for damage on connectors"
+    },
+    "cooler": {
+      "price": 5.00,
+      "notes": "Verify fan operation and heatsink condition"
+    },
+    "fan": {
+      "price": 3.00,
+      "notes": "Test for smooth operation before valuing"
+    },
+    "hdd": {
+      "price": 4.00,
+      "notes": "Check SMART data for health status"
+    },
+    "ssd": {
+      "price": 8.00,
+      "notes": "Higher value for NVMe versus SATA models"
+    },
+    "psu": {
+      "price": 7.00,
+      "notes": "Value varies by wattage and certification"
+    },
+    "mboard": {
+      "price": 12.00,
+      "notes": "Higher value for newer sockets and features"
+    },
+    "ram": {
+      "price": 6.00,
+      "notes": "Value depends on capacity and generation (DDR3/DDR4/DDR5)"
+    },
+    "cpu": {
+      "price": 20.00,
+      "notes": "Highest value component, check for bent pins"
+    },
+    "cmos": {
+      "price": 0.50,
+      "notes": "Low value but essential for motherboard operation"
+    },
+    "case": {
+      "price": 5.00,
+      "notes": "Value depends on condition and features"
+    }
+  },
+
   "nodes": [
     {
       "id": "start",
