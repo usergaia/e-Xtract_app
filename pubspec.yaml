@@ -1,0 +1,122 @@
+name: extract_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  image_picker: ^1.0.5  # For picking images from gallery or camera
+  tflite_flutter: ^0.11.0  # For TensorFlow Lite model inference
+  image: ^4.1.3
+  path_provider: ^2.1.1  # For file paths
+  path: ^1.8.3  # For path manipulation
+  google_fonts: ^6.1.0
+  flutter_secure_storage: ^9.2.4
+  timeago: ^3.2.0 # For displaying time in a human-readable format
+  lottie: ^2.3.2 # For Lottie animations
+  animated_splash_screen: ^1.3.0 # For splash screen animations
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.3
+  flutter_lints: ^5.0.0
+
+flutter_icons:
+  android: true
+  image_path: "assets/guides/app_icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+
+    - assets/splash.json
+    # Guide images
+    - assets/guides/open_phone.png #phone 
+    - assets/guides/dark_phone.png
+    - assets/guides/light_phone.png
+    - assets/guides/blur_phone.png
+    - assets/guides/unblur_phone.png
+    - assets/guides/mul_phone1.png
+    - assets/guides/mul_phone2.png
+    - assets/guides/mul_phone3.png
+    - assets/guides/open_laptop.png #laptop
+    - assets/guides/dark_laptop.png
+    - assets/guides/light_laptop.png
+    - assets/guides/blur_laptop.png
+    - assets/guides/unblur_laptop.png
+    - assets/guides/mul_laptop1.png
+    - assets/guides/mul_laptop2.png
+    - assets/guides/mul_laptop3.png
+    - assets/guides/open_desktop.png #desktop
+    - assets/guides/dark_desktop.png
+    - assets/guides/light_desktop.png
+    - assets/guides/blur_desktop.png
+    - assets/guides/unblur_desktop.png
+    - assets/guides/mul_desktop1.png
+    - assets/guides/mul_desktop2.png
+    - assets/guides/mul_desktop3.png
+    - assets/guides/open_router.png #router
+    - assets/guides/light_router.png
+    - assets/guides/dark_router.png
+    - assets/guides/blur_router.png
+    - assets/guides/unblur_router.png
+    - assets/guides/open_landline.png #landline
+    - assets/guides/light_landline.png
+    - assets/guides/dark_landline.png
+    - assets/guides/blur_landline.png
+    - assets/guides/unblur_landline.png
+    - assets/guides/add_img.png #extra
+
+    # Assistance images
+    - assets/img_assistance/ssd_screw.jpg #desktop  
+    - assets/img_assistance/ssd_lift.png
+    - assets/img_assistance/cpu_cooler_socket.png
+    - assets/img_assistance/hdd_plug.png
+    - assets/img_assistance/hdd_screw.png
+    - assets/img_assistance/cmos_lever.png
+    - assets/img_assistance/intel_pins.jpg
+    - assets/img_assistance/amd_screw.png
+    - assets/img_assistance/other_lever.png
+    - assets/img_assistance/fan_socket.png
+    - assets/img_assistance/cpu_lever.png
+    - assets/img_assistance/gpu_screw.png
+    - assets/img_assistance/gpu_cable.png
+    - assets/img_assistance/gpu_lock.png
+    - assets/img_assistance/mboard_screws.png
+    - assets/img_assistance/psu_screw.png
+    - assets/img_assistance/psu_mobo_cable.jpg
+    - assets/img_assistance/psu_cable.png
+    - assets/img_assistance/ram_pull.png
+    - assets/img_assistance/ram_pull_down.png
+    - assets/img_assistance/mobo_cable_clip.png
+    - assets/img_assistance/unscrew_board_hand1.png #landline
+    - assets/img_assistance/unscrew_board_hand2.png
+    - assets/img_assistance/unscrew_board_hand3.png
+    - assets/img_assistance/charging_port.png
+
+    # Knowledge-base
+    - assets/desktop_instructions.json
+    - assets/laptop_instructions.json
+    - assets/landline_instructions.json
+    - assets/router_instructions.json
+
+    # TFLite models 
+    - assets/models/laptop/best_laptop_float16.tflite
+    - assets/models/computer/best_computer_float16.tflite
+    - assets/models/smartphone/best_phone_float16.tflite
+    - assets/models/telecom/best_router-1_float16.tflite
+
+    # Model labels
+    - assets/models/laptop/labels.txt
+    - assets/models/computer/labels.txt
+    - assets/models/smartphone/labels.txt
+    - assets/models/telecom/labels.txt
+    - assets/smartphone_instructions.json
+
+

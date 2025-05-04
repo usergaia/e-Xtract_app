@@ -1,0 +1,4 @@
+battery
+cable
+camera
+screw

@@ -1,0 +1,471 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "text": "Would you like to indicate the reason/s you're disposing of the laptop, or would you like to head straight to extraction?",
+      "options": [
+        { "label": "Disposal Cause", "next": "issue" },
+        { "label": "Detected Components List", "next": "component_extraction"}
+      ]
+    },
+    {
+      "id": "issue",
+      "text": "What issue made you decide to dispose of the laptop?",
+      "options": [
+          { "label": "Laptop is not powering on", "next": "battery_issue" },
+          { "label": "Laptop is overheating", "next": "fan_issue" },
+          { "label": "Memory issue / RAM failure", "next": "ram_issue" },
+          { "label": "NVMe SSD not detected / failing", "next": "nvme_issue" },
+          { "label": "SATA SSD not working / corrupted", "next": "sata_issue" },
+          { "label": "Hard Drive clicking / not spinning", "next": "hdd_issue" },
+          { "label": "Connectivity issue (Wi-Fi)", "next": "other_issue" }
+        ],
+      "default_options": [
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "component_extraction",
+      "text": "What part would you like to extract?",
+      "options": [
+        { "label": "Battery", "next": "battery_type" },
+        { "label": "Fan/s", "next": "extract_fan" },
+        { "label": "RAM/s", "next": "ram_type" },
+        { "label": "SSD (2.5 SATA)", "next": "extract_ssd-sata" },
+        { "label": "SSD (NVMe M.2)", "next": "extract_ssd-nvme" },
+        { "label": "Hard Drive (HDD)", "next": "hdd_flow" },
+        { "label": "Wi-Fi Card", "next": "extract_wifi"},
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "battery_issue",
+      "text": "A non-powering laptop may be caused by an issue with the battery. Would you like to see disposal procedures for this part?",
+      "options": [
+        { "label": "Yes", "next": "dispose_battery" },
+        { "label": "No", "next": "battery_type" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "battery_type",
+      "text": "Can you see screws surrounding the battery? These are usually in gold or silver.",
+      "options": [
+        { "label": "Yes", "next": "extract_battery_screwed" },
+        { "label": "No", "next": "extract_battery_easy" },
+        { "label": "I'm not sure", "next": "extract_battery_generic"}
+      ]
+    },
+    {
+      "id": "extract_battery_screwed",
+      "steps": [
+        { "order": 1, "action": "Unscrew all visible screws that are holding the battery down." },
+        { "order": 2, "action": "Store these screws someplace memorable - you might need them later!" }
+      ],
+      "options": [
+        { "label": "Next Step", "next": "extract_battery_screwed2" },
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_battery_screwed2",
+      "text": "Do you see a cable coming from the battery and connecting to the motherboard?",
+      "options": [
+        { "label": "Yes", "next": "extract_battery_screwed3" },
+        { "label": "No", "next": "extract_battery_easy" }
+      ]
+    },
+    {
+      "id": "extract_battery_screwed3",
+      "steps": [
+        { "order": 1, "action": "Slowly disconnect the cable from the motherboard. Use tools like tweezers to make it easier." },
+        { "order": 2, "action": "Lift the battery out of the laptop and set it aside." },
+        { "order": 3, "action": "Congratulations, you've successfully extracted the battery from your laptop!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_battery_easy",
+      "steps": [
+        { "order": 1, "action": "Slide the latch(es) on the bottom of the laptop (if there are any) to the unlocked position." },
+        { "order": 2, "action": "Grip the exposed battery edge and pull it out of its compartment." },
+        { "order": 3, "action": "If the battery was held down by screws and it has no connected cables, simply lift it out of the laptop and set it aside." },
+        { "order": 4, "action": "Congratulations, you've successfully extracted the battery from your laptop!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_battery_generic",
+      "steps": [
+        { "order": 1, "action": "If you are unsure, consult the device's service manual or look for visible release mechanisms before attempting removal."}
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "dispose_battery",
+      "steps": [
+        { "order": 1, "action": "Tape battery terminals or place each battery in a separate plastic bag." },
+        { "order": 2, "action": "Bring to a designated hazardous-waste or electronics recycling drop-off." },
+        { "order": 3, "action":  "⚠️ REMINDER: Never dispose of lithium-ion batteries in regular trash bins!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "fan_issue",
+      "text": "Overheating may be caused by a broken fan or cooling issue. Would you like to see disposal steps for this part?",
+      "options": [
+        { "label": "Yes", "next": "dispose_fan" },
+        { "label": "No", "next": "extract_fan" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "extract_fan",
+      "steps": [
+        { "order": 1, "action": "Remove the screws surrounding the fans." },
+        { "order": 2, "action": "Set aside the screws for potential use later." },
+        { "order": 3, "action": "Gently lift the fan to inspect for connected cables." }
+      ],
+      "options": [
+        { "label": "Next Step", "next": "extract_fan2" },
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_fan2",
+      "text": "Do you see a cable coming from the fan and connecting to the motherboard?",
+      "options": [
+        { "label": "Yes", "next": "extract_fan3" },
+        { "label": "No", "next": "extract_fan6" }
+      ]
+    },
+    {
+      "id": "extract_fan3",
+      "text": "Is the cable held down by a small flap, usually in gray?",
+      "options": [
+        { "label": "Yes", "next": "extract_fan4" },
+        { "label": "No", "next": "extract_fan5" }
+      ]
+    },
+    {
+      "id": "extract_fan4",
+      "steps": [
+        { "order": 1, "action": "Use a small tool to raise the flap locking down the cable." },
+        { "order": 2, "action": "Gently disconnect the cable from the motherboard." },
+        { "order": 3, "action": "Lift the fan from the laptop." },
+        { "order": 4, "action": "You have successfully extracted the fan from your laptop. Congratulations!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_fan5",
+      "steps": [
+        { "order": 1, "action": "Gently disconnect the cable from the motherboard." },
+        { "order": 2, "action": "Lift the fan from the laptop." },
+        { "order": 3, "action": "You have successfully extracted the fan from your laptop. Congratulations!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_fan6",
+      "steps": [
+        { "order": 1, "action": "Lift the fan from the laptop." },
+        { "order": 2, "action": "You have successfully extracted the fan from your laptop. Congratulations!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "dispose_fan",
+      "steps": [
+        { "order": 1, "action": "Separate metal and plastic parts; take to a certified e-waste recycler." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "ram_issue",
+      "text": "Memory issues may be caused by a RAM failure. Would you like to see disposal steps for this part?",
+      "options": [
+        { "label": "Yes", "next": "dispose_rame" },
+        { "label": "No", "next": "ram_type" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "ram_type",
+      "text": "What type of RAM installation does this laptop have?",
+      "options": [
+        { "label": "Clip mounted", "next": "extract_ram" },
+        { "label": "Soldered", "next": "ram_soldered" },
+        { "label": "Unsure", "next": "ram_check_type" }
+      ]
+    },
+    {
+      "id": "ram_check_type",
+      "text": "Look for metal clips on the sides of the RAM module. If there are no clips and the RAM appears to be part of the motherboard, it is likely soldered.",
+      "options": [
+        { "label": "I see clips", "next": "extract_ram" },
+        { "label": "Appears soldered", "next": "ram_soldered" }
+      ]
+    },
+    {
+      "id": "extract_ram",
+      "steps": [
+        { "order": 1, "action": "Push side clips down and outward. You will notice that the RAM stick will pop up slightly at an angle." },
+        { "order": 2, "action": "Gently pull the RAM straight out of its slot." },
+        { "order": 3, "action": "RAM extraction complete. Congratulations!"}
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "ram_soldered",
+      "text": "Since the RAM is soldered to the motherboard, extraction will require specialized desoldering equipment and expertise. Consider leaving it in the motherboard for now.",
+      "steps": [
+        { "order": 1, "action": "Professional extraction requires: hot air station, specialized tips, flux." },
+        { "order": 2, "action": "Risk of motherboard damage is high without proper tools and experience." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "dispose_ram",
+      "steps": [
+        { "order": 1, "action": "Ensure RAM is free of sensitive data." },
+        { "order": 2, "action": "Take to an electronics recycling facility for proper disposal." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "nvme_issue",
+      "text": "NVMe SSD issues can include detection problems or sudden failure. Would you like to see disposal steps?",
+      "options": [
+        { "label": "Yes", "next": "dispose_storage" },
+        { "label": "No", "next": "extract_ssd-nvme" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "sata_issue",
+      "text": "SATA SSD issues often involve data corruption or connection problems. Would you like to see disposal steps?",
+      "options": [
+        { "label": "Yes", "next": "dispose_storage" },
+        { "label": "No", "next": "extract_ssd-sata" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "hdd_issue",
+      "text": "Hard Drive issues like clicking sounds or spin failure indicate mechanical problems. Would you like to see disposal steps?",
+      "options": [
+        { "label": "Yes", "next": "dispose_storage" },
+        { "label": "No", "next": "hdd_flow" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "hdd_flow",
+      "text": "Is the HDD connected via a ribbon-cable with a flip-up locking flap?",
+      "options": [
+        { "label": "Yes", "next": "extract_hard-drive_motherboard" },
+        { "label": "No", "next": "extract_hard-drive" }
+      ]
+    },
+    {
+      "id": "extract_hard-drive_motherboard",
+      "steps": [
+        { "order": 1, "action": "Flip up the locking flap on the cable connector to release it." },
+        { "order": 2, "action": "Remove mounting screws, then slide the drive out." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_hard-drive",
+      "steps": [
+        { "order": 1, "action": "Remove the battery and open the HDD access door." },
+        { "order": 2, "action": "Slide the drive out by pulling its connector tab." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_ssd-nvme",
+      "steps": [
+        { "order": 1, "action": "Open the cover to expose the M.2 slot." },
+        { "order": 2, "action": "Unscrew the standoff, lift the SSD at an angle, and slide it out." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "extract_ssd-sata",
+      "steps": [
+        { "order": 1, "action": "Remove chassis screws and unplug SATA cables." },
+        { "order": 2, "action": "Remove drive mounting screws, then slide the SSD from its bay." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "dispose_storage",
+      "steps": [
+        { "order": 1, "action": "⚠️ WARNING: Ensure all sensitive data is securely erased!" },
+        { "order": 2, "action": "Remove any labels containing sensitive information." },
+        { "order": 3, "action": "Take to certified e-waste recycler for proper disposal." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "other_issue",
+      "text": "Wi-Fi connectivity issues are most likely caused by a faulty Wi-Fi card. Would you like to see disposal steps for this part?",
+      "options": [
+        { "label": "Yes", "next": "dispose_wifi" },
+        { "label": "No", "next": "extract_wifi" },
+        { "label": "Return", "next": "issue" }
+      ]
+    },
+    {
+      "id": "extract_wifi",
+      "steps": [
+        { "order": 1, "action": "The Wi-Fi card is held down by a single screw. Remove this screw and slowly lift the Wi-Fi card away from the laptop." },
+        { "order": 2, "action": "Gently detach the antennae that is connected to the Wi-Fi card." },
+        { "order": 3, "action": "Your Wi-Fi card is now successfully detached. Congratulations!" }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "dispose_wifi",
+      "steps": [
+        { "order": 1, "action": "Remove any identifying stickers or labels." },
+        { "order": 2, "action": "Recycle the PCB and metal components at a certified e-waste center." }
+      ],
+      "options": [
+        { "label": "Return to Component List", "next": "component_extraction" },
+        { "label": "End Extraction", "next": "end" }
+      ]
+    },
+    {
+      "id": "end",
+      "text": "All detected components have been processed."
+    }
+  ],
+
+  "component_labels": {
+    "Battery": "battery",
+    "Fan": "fan",
+    "Ram": "ram",
+    "SSD (2.5 SATA)": "ssd-sata",
+    "SSD (NVMe M.2)": "ssd-nvme",
+    "Hard Drive (HDD)": "hard-drive",
+    "Wi-Fi Card": "wifi-card"
+  },
+
+  "issue_component_mapping": {
+    "Laptop is not powering on": ["battery"],
+    "Laptop is overheating": ["fan"],
+    "Memory issue / RAM failure": ["ram"],
+    "NVMe SSD not detected / failing": ["ssd-nvme"],
+    "SATA SSD not working / corrupted": ["ssd-sata"],
+    "Hard Drive clicking / not spinning": ["hard-drive"],
+    "Connectivity issue (Wi-Fi)": ["wifi-card"]
+  },
+
+  "component_values": {
+    "ram": {
+      "price": 1200.00,
+      "notes": "Memory modules often retain value"
+    },
+    "ssd-nvme": {
+      "price": 800.00,
+      "notes": "High demand for SSDs"
+    },
+    "ssd-sata": {
+      "price": 900.00,
+      "notes": "Common in older laptops"
+    },
+    "hard-drive": {
+      "price": 1500.00,
+      "notes": "Check for bad sectors"
+    },
+    "battery": {
+      "price": 1500.00,
+      "notes": "Capacity test recommended"
+    },
+    "fan": {
+      "price": 150.00,
+      "notes": "Common replacement part"
+    },
+    "wifi-card": {
+      "price": 70.00,
+      "notes": "Compatible with most laptops"
+    }
+  },
+
+  "guidelines": {
+    "safety": [
+      "Make sure that your device is powered off and unplugged.",
+      "Work in a bright, open, and well-ventilated area.",
+      "Keep track of screws and small parts.",
+      "Gloves are recommended for extra safety."
+    ],
+    "tools": [
+      "Phillips Head Scredriver",
+      "Flathead Screwdriver",
+      "Torx Screwdriver",
+      "Plastic Prying Tools (such as Spudgers, Guitar Picks, or Plastic Cards)",
+      "Tweezers",
+      "Optional: Gloves, ESD Wrist Strap, or Anti-Static Mat"
+    ]
+  }
+}
+
+  

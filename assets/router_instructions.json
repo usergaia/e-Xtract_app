@@ -1,0 +1,466 @@
+{
+  "component_labels": {
+    "Router board": "board",
+    "Antenna": "antenna"
+  },
+  "issue_component_mapping": {
+    "No internet connection": ["board", "antenna"],
+    "Weak Wi-Fi signal": ["antenna", "board"],
+    "Router overheating": ["board"],
+    "Antenna loose or broken": ["antenna"]
+  },
+  "component_values": {
+    "board": {
+      "price": 25.00,
+      "notes": "High value component, contains primary circuitry and processing chips"
+    },
+    "antenna": {
+      "price": 8.00,
+      "notes": "Value varies by type (internal/external) and signal frequency range"
+    }
+  },
+  "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
+  
+  "nodes": [
+    {
+      "id": "start",
+      "text": "Would you like to indicate the reason/s you're troubleshooting the router, or would you like to head straight to extraction?",
+      "options": [
+        { "label": "Troubleshooting Cause", "next": "issue" },
+        { "label": "Detected Components List", "next": "component_extraction" }
+      ]
+    },
+    {
+      "id": "issue",
+      "text": "What issue or component would you like to address first?",
+      "options": [
+        { "label": "No internet connection", "next": "internet_issue" },
+        { "label": "Weak Wi-Fi signal", "next": "wifi_issue" },
+        { "label": "Router overheating", "next": "overheating_issue" },
+        { "label": "Antenna loose or broken", "next": "antenna_issue" },
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "component_extraction",
+      "text": "Which part would you like to extract?",
+      "options": [
+        { "label": "Router Board", "next": "extract_board_prepare" },
+        { "label": "Antenna", "next": "antenna_type" },
+        { "label": "Back", "next": "start" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "internet_issue",
+      "text": "Internet issues are often related to the router board or antenna. Which component would you like to check first?",
+      "options": [
+        { "label": "Router Board", "next": "extract_board_prepare" },
+        { "label": "Antenna", "next": "antenna_type" },
+        { "label": "Back", "next": "issue" }
+      ]
+    },
+    {
+      "id": "wifi_issue",
+      "text": "Wi-Fi signal issues are typically related to the antenna, but can sometimes be caused by board problems. Which component would you like to check?",
+      "options": [
+        { "label": "Antenna", "next": "antenna_type" },
+        { "label": "Router Board", "next": "extract_board_prepare" },
+        { "label": "Back", "next": "issue" }
+      ]
+    },
+    {
+      "id": "overheating_issue",
+      "text": "Overheating issues are commonly related to the router board. Would you like to extract the board for inspection?",
+      "options": [
+        { "label": "Yes", "next": "extract_board_prepare" },
+        { "label": "No", "next": "issue" }
+      ]
+    },
+    {
+      "id": "antenna_issue",
+      "text": "For antenna issues, we'll need to identify what type of antenna your router has.",
+      "options": [
+        { "label": "Check Antenna", "next": "antenna_type" },
+        { "label": "Back", "next": "issue" }
+      ]
+    },
+    {
+      "id": "extract_board_prepare",
+      "text": "Before extracting the router board, ensure you've already removed the outer casing. The board will have various components and connections that need to be handled carefully.",
+      "options": [
+        { "label": "Continue to board extraction", "next": "extract_board" },
+        { "label": "Back", "next": "component_extraction" }
+      ]
+    },
+    {
+      "id": "extract_board",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Take a photo or note the positions of all cables connected to the board before disconnecting anything."
+        },
+        {
+          "order": 2,
+          "action": "Carefully disconnect all network cables (Ethernet) from their ports by pressing the small plastic tab and gently pulling the connector out."
+        },
+        {
+          "order": 3,
+          "action": "Locate and disconnect the power cable connector from the board. This is usually a small plug that can be pulled straight out."
+        },
+        {
+          "order": 4,
+          "action": "Identify any antenna wires connected to the board. These are typically thin coaxial cables with small connectors. Gently unplug these by pulling straight up or twisting counterclockwise if they're screw-type."
+        },
+        {
+          "order": 5,
+          "action": "Locate all screws securing the board to the standoffs or casing. These are usually found at the corners and sometimes along the edges of the board."
+        },
+        {
+          "order": 6,
+          "action": "Using the appropriate screwdriver (usually Phillips #1 or #0), remove all the screws and set them aside in a safe place."
+        },
+        {
+          "order": 7,
+          "action": "Check for any remaining clips or fasteners that might be securing the board."
+        },
+        {
+          "order": 8,
+          "action": "Gently lift the board straight up, being careful not to force it if you feel resistance."
+        }
+      ],
+      "next": "board_extraction_confirmation"
+    },
+    {
+      "id": "board_extraction_confirmation",
+      "text": "Have you successfully extracted the router board?",
+      "options": [
+        { "label": "Yes", "next": "board_extracted_success" },
+        { "label": "No, I'm having trouble", "next": "board_extraction_help" }
+      ]
+    },
+    {
+      "id": "board_extraction_help",
+      "text": "What issue are you experiencing with the board extraction?",
+      "options": [
+        { "label": "Board won't come free", "next": "board_stuck_help" },
+        { "label": "Can't disconnect a cable", "next": "board_cable_help" },
+        { "label": "Unsure about remaining connections", "next": "board_connection_help" },
+        { "label": "I need professional assistance", "next": "professional_assistance" }
+      ]
+    },
+    {
+      "id": "board_stuck_help",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Double-check for any remaining screws, especially in hidden areas or under stickers."
+        },
+        {
+          "order": 2,
+          "action": "Look for plastic standoffs or clips that might still be holding the board in place."
+        },
+        {
+          "order": 3,
+          "action": "Ensure all cables and connections have been properly disconnected."
+        },
+        {
+          "order": 4,
+          "action": "Try gently rocking the board back and forth to identify where it might be stuck."
+        },
+        {
+          "order": 5,
+          "action": "Check if the board's ports (Ethernet, USB) are caught on the case openings."
+        }
+      ],
+      "next": "board_extraction_confirmation"
+    },
+    {
+      "id": "board_cable_help",
+      "steps": [
+        {
+          "order": 1,
+          "action": "For Ethernet cables: Press down firmly on the plastic tab while gently pulling the connector."
+        },
+        {
+          "order": 2,
+          "action": "For power connectors: These usually pull straight out. Check the connector type and pull in the appropriate direction."
+        },
+        {
+          "order": 3,
+          "action": "For antenna cables: Small coaxial connectors might twist off (counterclockwise) or pull straight up depending on the type."
+        },
+        {
+          "order": 4,
+          "action": "For ribbon cables: Look for a small locking tab that needs to be flipped up before the cable can be removed."
+        },
+        {
+          "order": 5,
+          "action": "Use minimal force. If a connector won't come free easily, double-check its mechanism rather than pulling harder."
+        }
+      ],
+      "next": "board_extraction_confirmation"
+    },
+    {
+      "id": "board_connection_help",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Look for any small ribbon cables that might connect the board to other components like LED indicators."
+        },
+        {
+          "order": 2,
+          "action": "Check for grounding wires or small connectors that might not be immediately obvious."
+        },
+        {
+          "order": 3,
+          "action": "Inspect the underside of the board for any connectors or attachments."
+        },
+        {
+          "order": 4,
+          "action": "Make sure all external ports (USB, Ethernet) are clear of the case openings."
+        }
+      ],
+      "next": "board_extraction_confirmation"
+    },
+    {
+      "id": "board_extracted_success",
+      "text": "Congratulations! You've successfully extracted the router board. This is a valuable component worth approximately $25.00. The board contains the main processor, memory, and circuitry that powers your router's functions. Would you like to extract another component?",
+      "options": [
+        { "label": "Extract another component", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "antenna_type",
+      "text": "What type of antenna does your router have?",
+      "options": [
+        { "label": "External screw-on antennas", "next": "extract_external_antenna" },
+        { "label": "Internal antennas (no visible antennas outside)", "next": "extract_internal_antenna" },
+        { "label": "I'm not sure", "next": "identify_antenna_type" }
+      ]
+    },
+    {
+      "id": "identify_antenna_type",
+      "text": "Look at your router. If you see rod-like projections sticking out from the router body, you have external antennas. If your router is sleek with no protruding parts, it likely has internal antennas.",
+      "options": [
+        { "label": "I see external antennas", "next": "extract_external_antenna" },
+        { "label": "No visible antennas (internal)", "next": "extract_internal_antenna" },
+        { "label": "Still not sure", "next": "professional_assistance" }
+      ]
+    },
+    {
+      "id": "extract_external_antenna",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Identify the external antenna you want to remove. It will be a rod-like projection from the router body."
+        },
+        {
+          "order": 2,
+          "action": "Grip the base of the antenna firmly where it connects to the router body."
+        },
+        {
+          "order": 3,
+          "action": "Twist the antenna counterclockwise until it loosens."
+        },
+        {
+          "order": 4,
+          "action": "Continue twisting until the antenna comes free from the router."
+        },
+        {
+          "order": 5,
+          "action": "If the antenna doesn't turn easily, don't force it. Check if there's a locking mechanism or different attachment method."
+        }
+      ],
+      "next": "external_antenna_confirmation"
+    },
+    {
+      "id": "external_antenna_confirmation",
+      "text": "Have you successfully removed the external antenna?",
+      "options": [
+        { "label": "Yes", "next": "antenna_extracted_success" },
+        { "label": "No, it won't unscrew", "next": "external_antenna_help" },
+        { "label": "I need professional assistance", "next": "professional_assistance" }
+      ]
+    },
+    {
+      "id": "external_antenna_help",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Check if there is a locking mechanism at the base of the antenna that needs to be pressed or released first."
+        },
+        {
+          "order": 2,
+          "action": "Ensure you're turning counterclockwise (lefty-loosey)."
+        },
+        {
+          "order": 3,
+          "action": "Try holding the router body firmly with one hand while twisting with the other to provide counter-pressure."
+        },
+        {
+          "order": 4,
+          "action": "If the antenna is stiff, try applying a small amount of pressure downward while twisting."
+        },
+        {
+          "order": 5,
+          "action": "If it still won't budge, the connector might be damaged or have a special release mechanism."
+        }
+      ],
+      "next": "external_antenna_confirmation"
+    },
+    {
+      "id": "extract_internal_antenna",
+      "text": "Internal antennas require accessing the inside of the router. Ensure you've already removed the router casing.",
+      "steps": [
+        {
+          "order": 1,
+          "action": "With the router casing removed, locate the internal antennas. These typically appear as small circuit boards or wire elements, often positioned along the sides or edges of the router."
+        },
+        {
+          "order": 2,
+          "action": "Identify how the antenna is connected to the main board. Most internal antennas connect via small coaxial cables with snap-on or screw-type connectors."
+        },
+        {
+          "order": 3,
+          "action": "For snap-on connectors: Gently grip the connector (not the wire) and pull straight up to disconnect."
+        },
+        {
+          "order": 4,
+          "action": "For screw-type connectors: Twist counterclockwise to loosen and remove."
+        },
+        {
+          "order": 5,
+          "action": "Once disconnected from the main board, check if the antenna is secured to the casing with screws or adhesive."
+        },
+        {
+          "order": 6,
+          "action": "If screwed in place, remove the securing screws with an appropriate screwdriver."
+        },
+        {
+          "order": 7,
+          "action": "If adhered, gently pry the antenna from its mounting location using a plastic opening tool or your fingernail."
+        }
+      ],
+      "next": "internal_antenna_confirmation"
+    },
+    {
+      "id": "internal_antenna_confirmation",
+      "text": "Have you successfully extracted the internal antenna?",
+      "options": [
+        { "label": "Yes", "next": "antenna_extracted_success" },
+        { "label": "No, I'm having trouble", "next": "internal_antenna_help" },
+        { "label": "I need professional assistance", "next": "professional_assistance" }
+      ]
+    },
+    {
+      "id": "internal_antenna_help",
+      "text": "What issue are you experiencing with the internal antenna extraction?",
+      "options": [
+        { "label": "Can't locate the antenna", "next": "locate_internal_antenna" },
+        { "label": "Can't disconnect the antenna cable", "next": "antenna_cable_help" },
+        { "label": "Antenna won't detach from casing", "next": "antenna_mounting_help" },
+        { "label": "I need professional assistance", "next": "professional_assistance" }
+      ]
+    },
+    {
+      "id": "locate_internal_antenna",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Internal antennas often look like thin circuit boards or wire elements running along the edges of the router."
+        },
+        {
+          "order": 2,
+          "action": "Follow any thin coaxial cables from the main board to find where they connect to the antennas."
+        },
+        {
+          "order": 3,
+          "action": "Look for small rectangular or L-shaped circuit boards that may be mounted to the sides of the casing."
+        },
+        {
+          "order": 4,
+          "action": "Some routers have metal antenna elements printed directly on the main board or on secondary boards."
+        }
+      ],
+      "next": "internal_antenna_confirmation"
+    },
+    {
+      "id": "antenna_cable_help",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Identify the connector type. Most internal antenna cables use small U.FL or I-PEX connectors that snap onto pins on the board."
+        },
+        {
+          "order": 2,
+          "action": "For snap-on connectors: Use your fingernail or a plastic opening tool to gently pry up from the base of the connector, not by pulling on the wire."
+        },
+        {
+          "order": 3,
+          "action": "For screw-type connectors: Ensure you're turning counterclockwise and gripping the connector base firmly."
+        },
+        {
+          "order": 4,
+          "action": "If the connector is difficult to access, try using a pair of non-conductive plastic tweezers to get a better grip."
+        }
+      ],
+      "next": "internal_antenna_confirmation"
+    },
+    {
+      "id": "antenna_mounting_help",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Check for any visible screws securing the antenna to the casing and remove them."
+        },
+        {
+          "order": 2,
+          "action": "If the antenna appears to be glued or adhered, gently insert a plastic opening tool between the antenna and casing."
+        },
+        {
+          "order": 3,
+          "action": "Slowly work around the edges, gradually releasing the adhesive."
+        },
+        {
+          "order": 4,
+          "action": "Apply gentle, even pressure. Don't force it as this could damage the antenna element."
+        },
+        {
+          "order": 5,
+          "action": "If the adhesive is very strong, a small amount of heat from a hair dryer (on low setting) held several inches away can help soften it."
+        }
+      ],
+      "next": "internal_antenna_confirmation"
+    },
+    {
+      "id": "antenna_extracted_success",
+      "text": "Congratulations! You've successfully extracted the router antenna. This component is worth approximately $8.00. Antennas are critical for Wi-Fi signal strength and range. Would you like to extract another component?",
+      "options": [
+        { "label": "Extract another component", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "professional_assistance",
+      "text": "Some router components can be challenging to extract, especially when they use specialized connections or are tightly integrated. To avoid damaging valuable components, you might want to seek professional assistance with this extraction.",
+      "options": [
+        { "label": "Back to components", "next": "component_extraction" },
+        { "label": "End", "next": "end" }
+      ]
+    },
+    {
+      "id": "end",
+      "text": "You have completed the router component extraction process. Thank you for responsibly recycling your electronic components!"
+    }
+  ]
+}
