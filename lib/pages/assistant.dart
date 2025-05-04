@@ -1,6 +1,8 @@
 import 'dart:io'; 
 import 'package:flutter/material.dart'; 
 import 'package:google_fonts/google_fonts.dart'; 
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import '/pages/base.dart'; 
 import '/pages/knowledge_implementation.dart';
 import '/pages/category.dart';
@@ -36,7 +38,7 @@ class ChatbotRedo extends StatefulWidget {
 // The mutable state class that contains all the dynamic logic and UI
 class _ChatbotRedoState extends State<ChatbotRedo> {
   // UI state variables
-  bool _isSummaryExpanded = false; // Controls if the top summary section is expanded
+  bool _isSummaryExpanded = true; // Controls if the top summary section is expanded
   
   // Rule system variables
   RuleBase? _ruleBase; // Contains all the decision nodes and rules
@@ -56,11 +58,15 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
 
   String? _sessionId; // Tracks the session
 
+  // Guidelines variables
+  bool _showedInitialGuide = false;
+  Map<String, dynamic>? _guidelines;
+
   // Lifecycle method called when widget is first created
   @override
   void initState() {
     super.initState();
-    _loadRuleBase();
+    _loadRuleBase(); // This now handles both rule base and guidelines
     _initializeComponentImagePaths();
     
     // Handle both string and integer batch IDs
@@ -125,15 +131,27 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
     try {
       print("Loading rule base for category: ${widget.initialCategory}");
       
+      // Load rule base using existing KnowledgeImplementation
       final ruleBase = await KnowledgeImplementation.loadRuleBase(widget.initialCategory);
-      _parseAdditionalRuleBaseStructure(ruleBase);
       
-      print("Rule base loaded: ${ruleBase.nodes.length} nodes");
+      // Get the raw JSON data that contains both rules and guidelines
+      final rawData = KnowledgeImplementation.getRawJsonData(widget.initialCategory);
       
-      // Check if we're resuming a session and have a saved node ID
+      if (rawData != null) {
+        // Parse rule base structure as before
+        _parseAdditionalRuleBaseStructure(ruleBase);
+        
+        // Also extract guidelines from the same JSON data
+        if (rawData.containsKey('guidelines')) {
+          setState(() {
+            _guidelines = rawData['guidelines'] as Map<String, dynamic>;
+          });
+        }
+      }
+
+      // Check for session resumption
       String? startingNodeId = 'start';
       if (widget.initialBatch.length == 1 && widget.initialBatch[0] is String) {
-        // This is an existing session - try to find its saved position
         final repository = SessionRepository();
         final sessions = await repository.getSavedSessions();
         final session = sessions.firstWhere(
@@ -153,7 +171,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
         }
       }
       
-      // Find the starting node
+      // Find starting node
       Node? startingNode = ruleBase.findNodeById(startingNodeId ?? 'start');
       
       setState(() {
@@ -162,6 +180,15 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
         _isLoading = false;
         _updateCurrentComponentFromNodeId(_currentNode?.id ?? '');
       });
+
+      // Show guidelines dialog if not shown before
+      // Added after setState to ensure UI is ready
+      if (!_showedInitialGuide && _guidelines != null) {
+        // Use post-frame callback to avoid showing dialog during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showGuidelinesDialog();
+        });
+      }
     } catch (e) {
       print("Error loading rule base: $e");
       setState(() {
@@ -319,6 +346,164 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                 ],
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Show the guidelines dialog
+  void _showGuidelinesDialog() {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF34A853),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Before We Get Started',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Safety Guidelines Section
+                Text(
+                  'Safety Guidelines:',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._guidelines?['safety']?.map<Widget>((guideline) =>
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ', style: TextStyle(fontSize: 16)),
+                        Expanded(
+                          child: Text(
+                            guideline,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )?.toList() ?? [],
+                
+                const SizedBox(height: 16),
+                
+                // Recommended Tools Section
+                Text(
+                  'Recommended Tools:',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._guidelines?['tools']?.map<Widget>((tool) =>
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ', style: TextStyle(fontSize: 16)),
+                        Expanded(
+                          child: Text(
+                            tool,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )?.toList() ?? [],
+                
+                const SizedBox(height: 24),
+                
+                // OK Button
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _showedInitialGuide = true;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0, // Remove button shadow
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Text(
+                          'Got It',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -1064,7 +1249,7 @@ class _ChatbotRedoState extends State<ChatbotRedo> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12), // Space between the row and Summary button
+                const SizedBox(width: 12), // Space between the row and Summary button
                 
                 // Summary button
                 ElevatedButton(

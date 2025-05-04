@@ -96,6 +96,10 @@ flutter:
     - assets/img_assistance/ram_pull.png
     - assets/img_assistance/ram_pull_down.png
     - assets/img_assistance/mobo_cable_clip.png
+    - assets/img_assistance/unscrew_board_hand1.png #landline
+    - assets/img_assistance/unscrew_board_hand2.png
+    - assets/img_assistance/unscrew_board_hand3.png
+    - assets/img_assistance/charging_port.png
 
     # Knowledge-base
     - assets/desktop_instructions.json

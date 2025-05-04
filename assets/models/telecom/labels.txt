@@ -1,4 +1,4 @@
 antenna
-Board
-Speaker
-Board
+board
+speaker
+board
