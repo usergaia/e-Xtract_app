@@ -29,6 +29,15 @@
     "RAM (Memory) issues": ["ram"]
   },
 
+  "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
+  
   "component_values": {
     "gpu": {
       "price": 15.00,

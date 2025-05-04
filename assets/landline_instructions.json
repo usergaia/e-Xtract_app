@@ -17,6 +17,16 @@
       "notes": "Value varies by wattage and certification"
     }
   },
+
+    "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
+  
   "nodes": [
     {
       "id": "start",

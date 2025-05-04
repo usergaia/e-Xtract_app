@@ -19,6 +19,15 @@
       "notes": "Value varies by type (internal/external) and signal frequency range"
     }
   },
+  "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
+  
   "nodes": [
     {
       "id": "start",
