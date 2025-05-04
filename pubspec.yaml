@@ -29,7 +29,7 @@ dev_dependencies:
 
 flutter_icons:
   android: true
-  image_path: "assets/guides/default.png"
+  image_path: "assets/guides/app_icon.png"
 
 flutter:
   uses-material-design: true

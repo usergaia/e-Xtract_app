@@ -28,6 +28,15 @@
     "Power supply (PSU) failure": ["psu"],
     "RAM (Memory) issues": ["ram"]
   },
+
+  "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
   "nodes": [
     {
       "id": "start",

@@ -11,6 +11,15 @@
     "Antenna loose or broken": ["antenna"]
   },
 
+  "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
+  
   "nodes": [
     {
       "id": "start",

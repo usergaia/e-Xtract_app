@@ -9,6 +9,16 @@
       "Cannot hear caller": ["Speaker"],
       "Phone not powering on": ["Board"]
     },
+
+    "guidelines": {
+    "safety": [
+      "Safety Test"
+    ],
+    "tools": [
+      "Tools Test"
+    ]
+  },
+  
     "nodes": [
       {
         "id": "start",

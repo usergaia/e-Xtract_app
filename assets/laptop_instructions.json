@@ -421,33 +421,50 @@
 
   "component_values": {
     "ram": {
-      "price": 1.00,
+      "price": 1200.00,
       "notes": "Memory modules often retain value"
     },
     "ssd-nvme": {
-      "price": 2.00,
+      "price": 800.00,
       "notes": "High demand for SSDs"
     },
     "ssd-sata": {
-      "price": 3.00,
+      "price": 900.00,
       "notes": "Common in older laptops"
     },
     "hard-drive": {
-      "price": 4.00,
+      "price": 1500.00,
       "notes": "Check for bad sectors"
     },
     "battery": {
-      "price": 5.00,
+      "price": 1500.00,
       "notes": "Capacity test recommended"
     },
     "fan": {
-      "price": 6.00,
+      "price": 150.00,
       "notes": "Common replacement part"
     },
     "wifi-card": {
-      "price": 7.00,
+      "price": 70.00,
       "notes": "Compatible with most laptops"
     }
+  },
+
+  "guidelines": {
+    "safety": [
+      "Make sure that your device is powered off and unplugged.",
+      "Work in a bright, open, and well-ventilated area.",
+      "Keep track of screws and small parts.",
+      "Gloves are recommended for extra safety."
+    ],
+    "tools": [
+      "Phillips Head Scredriver",
+      "Flathead Screwdriver",
+      "Torx Screwdriver",
+      "Plastic Prying Tools (such as Spudgers, Guitar Picks, or Plastic Cards)",
+      "Tweezers",
+      "Optional: Gloves, ESD Wrist Strap, or Anti-Static Mat"
+    ]
   }
 }
 

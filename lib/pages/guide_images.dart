@@ -598,9 +598,14 @@ class _DeviceGuideSliderState extends State<DeviceGuideSlider> {
                       ),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        height: 60, // Fixed height for consistency
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF1B5E20),
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF34A853), Color(0xFF0F9D58)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
                         ),
                         child: Row(
@@ -673,7 +678,7 @@ class _DeviceGuideSliderState extends State<DeviceGuideSlider> {
               ],
               if (guideImages.length > 1)
                 Positioned(
-                  bottom: 46,
+                  bottom: 76, // Increased from 46 to place above text container
                   left: 0,
                   right: 0,
                   child: Row(

@@ -135,9 +135,9 @@ class _UploadPageState extends State<UploadPage> {
             mainAxisAlignment: MainAxisAlignment.center, // Centers the row content
             children: [
               Text(
-              'Guide Images', // The text content
+              'Upload Guide', // The text content
               style: GoogleFonts.montserrat( // Using Google Fonts
-                color: const Color.fromARGB(179, 246, 255, 0), // Slightly transparent white
+                color: const Color.fromARGB(255, 255, 255, 255), // Slightly transparent white
                 fontSize: 20, // Larger font size
                 fontWeight: FontWeight.w600, // Medium-bold weight
               ),
@@ -146,7 +146,7 @@ class _UploadPageState extends State<UploadPage> {
               const SizedBox(width: 8), // Space between text and icon
               const Icon(
               Icons.info_outline, // Info icon
-              color: Color.fromARGB(179, 246, 255, 0), // Same color as text
+              color: Color.fromARGB(255, 255, 255, 255), // Same color as text
               size: 24, // Icon size
               ),
             ],
