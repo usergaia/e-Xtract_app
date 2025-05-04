@@ -192,12 +192,12 @@ class DeviceGuideImages {
       // Default guides if the category isn't found
       [
         GuideImage(
-          assetPath: 'assets/guides/default.png',
+          assetPath: 'assets/guides/app_icon.png',
           description: 'Take a clear photo of the entire device',
           iconData: Icons.photo_camera,
         ),  
         GuideImage(
-          assetPath: 'assets/guides/default.png',
+          assetPath: 'assets/guides/app_icon.png',
           description: 'Open the device to expose internal components',
           iconData: Icons.build,
         ),

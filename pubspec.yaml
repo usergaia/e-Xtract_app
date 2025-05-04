@@ -72,7 +72,6 @@ flutter:
     - assets/guides/blur_landline.png
     - assets/guides/unblur_landline.png
     - assets/guides/add_img.png #extra
-    - assets/guides/default.png 
 
     # Assistance images
     - assets/img_assistance/ssd_screw.jpg #desktop  
