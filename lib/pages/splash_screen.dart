@@ -1,6 +1,6 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
-import '/pages/home.dart';
+import 'home.dart';
 import 'package:lottie/lottie.dart';
 
 class AnimatedSplashScreenWidget extends StatelessWidget {
@@ -15,7 +15,7 @@ class AnimatedSplashScreenWidget extends StatelessWidget {
           frameRate: FrameRate.max, // Retained the max frame rate
         ),
       ),
-      splashIconSize: 300,
+      splashIconSize: 170,
       backgroundColor: Color(0xFF52CC7A),
       duration: 3850,
       nextScreen: HomePage(),
